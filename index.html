@@ -7,67 +7,41 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
-        :root {
-            --primary: #2563eb;
-            --success: #22c55e;
-            --danger: #ef4444;
-            --bg: #f3f4f6;
-            --card: #ffffff;
-            --text: #1f2937;
-        }
-
+        :root { --primary: #2563eb; --success: #22c55e; --danger: #ef4444; --bg: #f3f4f6; --card: #ffffff; --text: #1f2937; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); margin: 0; padding: 0; color: var(--text); padding-bottom: 80px; }
-        
-        /* 頂部導航 */
         .header { background: var(--primary); color: white; padding: 15px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
         .header h1 { margin: 0; font-size: 18px; font-weight: 600; }
         .btn-sm { background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px 10px; border-radius: 4px; font-size: 12px; }
-
-        /* 儀表板 */
         .dashboard { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; padding: 15px; }
         .stat-card { background: var(--card); padding: 10px; border-radius: 8px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .stat-num { font-size: 20px; font-weight: bold; display: block; }
         .stat-label { font-size: 12px; color: #6b7280; }
-
-        /* 操作區 */
         .actions { padding: 0 15px; display: flex; gap: 10px; }
         .btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; }
         .btn-scan { background: var(--text); color: white; }
         .btn-scan.active { background: var(--danger); }
         .btn-file { background: var(--primary); color: white; position: relative; overflow: hidden; }
         .btn-file input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
-
-        /* 掃描視窗 */
         #reader { width: 100%; margin-bottom: 10px; display: none; background: black; }
-        
-        /* 搜尋欄 */
         .search-box { padding: 15px; }
         .search-input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
-
-        /* 列表 */
         .item-list { padding: 0 15px; }
         .item-card { background: var(--card); padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid #ddd; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .item-card.done { border-left-color: var(--success); }
         .item-card.error { border-left-color: var(--danger); background-color: #fef2f2; }
-        
         .item-info h3 { margin: 0 0 5px 0; font-size: 16px; }
         .item-info p { margin: 0; font-size: 13px; color: #6b7280; }
         .item-count { text-align: right; }
         .count-badge { font-size: 18px; font-weight: bold; }
         .system-count { font-size: 12px; color: #9ca3af; }
-
-        /* 彈窗 */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; justify-content: center; align-items: flex-end; }
         .modal { background: white; width: 100%; border-radius: 16px 16px 0 0; padding: 20px; box-sizing: border-box; animation: slideUp 0.3s ease; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        
         .modal-title { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
         .modal-subtitle { font-size: 14px; color: #666; margin-bottom: 15px; }
         .modal-input-group { display: flex; gap: 10px; margin-bottom: 20px; }
         .qty-input { flex: 1; padding: 15px; font-size: 24px; text-align: center; border: 2px solid var(--primary); border-radius: 8px; }
         .modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        
-        /* 浮動按鈕 (匯出) */
         .fab { position: fixed; bottom: 20px; right: 20px; background: var(--success); color: white; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; border: none; font-size: 24px; }
     </style>
 </head>
@@ -91,4 +65,193 @@
     </div>
     <div class="stat-card">
         <span class="stat-num" style="color:var(--danger)" id="diffItems">0</span>
-        <span class="stat-
+        <span class="stat-label">異常</span>
+    </div>
+</div>
+
+<div class="actions">
+    <button class="btn btn-file">
+        📄 匯入 Excel
+        <input type="file" id="fileInput" accept=".xlsx, .xls" onchange="handleFile(this)">
+    </button>
+    <button class="btn btn-scan" id="scanBtn" onclick="toggleScanner()">
+        📷 掃描條碼
+    </button>
+</div>
+
+<div class="search-box">
+    <input type="text" class="search-input" placeholder="🔍 輸入代號後幾碼或品名..." oninput="filterList(this.value)">
+</div>
+
+<div class="item-list" id="itemList">
+    <div style="text-align:center; color:#999; padding: 20px;">
+        請先匯入公司系統 Excel
+    </div>
+</div>
+
+<button class="fab" onclick="exportExcel()">💾</button>
+
+<div class="modal-overlay" id="editModal">
+    <div class="modal">
+        <div class="modal-title" id="modalTitle">商品名稱</div>
+        <div class="modal-subtitle">系統應有: <span id="modalSysStock">0</span></div>
+        <div class="modal-input-group">
+            <button class="btn" style="background:#eee; flex:0.5;" onclick="adjustQty(-1)">-1</button>
+            <input type="number" id="modalQty" class="qty-input" value="0" onclick="this.select()">
+            <button class="btn" style="background:#eee; flex:0.5;" onclick="adjustQty(1)">+1</button>
+        </div>
+        <div class="modal-btns">
+            <button class="btn" style="background: #9ca3af; color: white;" onclick="closeModal()">取消</button>
+            <button class="btn" style="background: var(--primary); color: white;" onclick="saveQty()">確認</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let inventoryData = [];
+    let html5QrCode;
+    let isScanning = false;
+    let currentEditIndex = -1;
+
+    const SYSTEM_COLUMNS = {
+        code: ['產品代號'], 
+        name: ['產品名稱'], 
+        qty:  ['分倉存量']   
+    };
+
+    function getValue(row, possibleNames) {
+        for (let name of possibleNames) {
+            if (row[name] !== undefined) return row[name];
+        }
+        return null;
+    }
+
+    function handleFile(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const fileDate = new Date(file.lastModified).toLocaleString('zh-TW', { hour12: false });
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const sheetName = workbook.SheetNames[0]; 
+            const sheet = workbook.Sheets[sheetName];
+            const json = XLSX.utils.sheet_to_json(sheet);
+            
+            inventoryData = json.map(row => {
+                const rawCode = getValue(row, SYSTEM_COLUMNS.code);
+                const rawName = getValue(row, SYSTEM_COLUMNS.name);
+                const rawQty  = getValue(row, SYSTEM_COLUMNS.qty);
+                let cleanQty = 0;
+                if (rawQty) cleanQty = Math.floor(Number(rawQty)); 
+                return {
+                    code: rawCode ? String(rawCode).trim() : '', 
+                    name: rawName ? String(rawName).trim() : '未命名商品',
+                    sysQty: cleanQty,
+                    actQty: 0, 
+                    counted: false 
+                };
+            }).filter(item => item.code !== '');
+
+            renderList();
+            updateStats();
+            alert(`✅ 匯入成功！\n\n📄 檔名：${file.name}\n📅 檔案日期：${fileDate}\n📦 商品項目：${inventoryData.length} 筆\n\n(已自動過濾小數點，只保留整數庫存)`);
+        };
+        reader.readAsArrayBuffer(file);
+        input.value = ''; 
+    }
+
+    function renderList(filterText = '') {
+        const container = document.getElementById('itemList');
+        container.innerHTML = '';
+        const filtered = inventoryData.filter(item => 
+            item.code.toLowerCase().includes(filterText.toLowerCase()) || 
+            item.name.toLowerCase().includes(filterText.toLowerCase())
+        );
+        filtered.forEach((item, index) => {
+            const realIndex = inventoryData.indexOf(item);
+            let statusClass = '';
+            if (item.counted) statusClass = (item.actQty === item.sysQty) ? 'done' : 'error';
+            const div = document.createElement('div');
+            div.className = `item-card ${statusClass}`;
+            div.onclick = () => openEditModal(realIndex);
+            div.innerHTML = `<div class="item-info"><h3>${item.name}</h3><p>代號: ${item.code}</p></div><div class="item-count"><span class="count-badge" style="color:${item.counted ? (item.actQty==item.sysQty ? 'green' : 'red') : 'black'}">${item.counted ? item.actQty : '-'}</span><div class="system-count">/ ${item.sysQty}</div></div>`;
+            container.appendChild(div);
+        });
+    }
+
+    function updateStats() {
+        document.getElementById('totalItems').innerText = inventoryData.length;
+        document.getElementById('countedItems').innerText = inventoryData.filter(i => i.counted).length;
+        document.getElementById('diffItems').innerText = inventoryData.filter(i => i.counted && i.actQty !== i.sysQty).length;
+    }
+
+    function openEditModal(index) {
+        currentEditIndex = index;
+        const item = inventoryData[index];
+        document.getElementById('modalTitle').innerText = item.name;
+        document.getElementById('modalSysStock').innerText = item.sysQty;
+        const initVal = item.counted ? item.actQty : 1; 
+        document.getElementById('modalQty').value = initVal;
+        document.getElementById('editModal').style.display = 'flex';
+        setTimeout(() => document.getElementById('modalQty').focus(), 100);
+    }
+
+    function adjustQty(delta) {
+        const input = document.getElementById('modalQty');
+        let val = Number(input.value) + delta;
+        if(val < 0) val = 0;
+        input.value = val;
+    }
+
+    function closeModal() {
+        document.getElementById('editModal').style.display = 'none';
+        currentEditIndex = -1;
+        if(isScanning && html5QrCode) html5QrCode.resume();
+    }
+
+    function saveQty() {
+        if (currentEditIndex === -1) return;
+        const qty = Number(document.getElementById('modalQty').value);
+        inventoryData[currentEditIndex].actQty = qty;
+        inventoryData[currentEditIndex].counted = true;
+        closeModal();
+        renderList(document.querySelector('.search-input').value);
+        updateStats();
+    }
+
+    function filterList(val) { renderList(val); }
+
+    async function toggleScanner() {
+        const btn = document.getElementById('scanBtn');
+        const readerDiv = document.getElementById('reader');
+        if (isScanning) {
+            if (html5QrCode) { await html5QrCode.stop(); html5QrCode.clear(); }
+            readerDiv.style.display = 'none';
+            btn.classList.remove('active');
+            btn.innerHTML = '📷 掃描條碼';
+            isScanning = false;
+        } else {
+            readerDiv.style.display = 'block';
+            btn.classList.add('active');
+            btn.innerHTML = '⏹ 停止掃描';
+            html5QrCode = new Html5Qrcode("reader");
+            const config = { fps: 10, qrbox: { width: 250, height: 150 } };
+            html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess);
+            isScanning = true;
+        }
+    }
+
+    function onScanSuccess(decodedText, decodedResult) {
+        html5QrCode.pause();
+        const index = inventoryData.findIndex(item => item.code === decodedText);
+        if (index !== -1) { openEditModal(index); } else { alert(`找不到代號：${decodedText}`); html5QrCode.resume(); }
+    }
+
+    function exportExcel() {
+        if (inventoryData.length === 0) { alert('沒有資料可匯出'); return; }
+        const exportData = inventoryData.map(item => ({ '產品代號': item.code, '產品名稱': item.name, '分倉存量(系統)': item.sysQty, '實際盤點': item.counted ? item.actQty : '', '差異數': item.counted ? (item.actQty - item.sysQty) : '' }));
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "盤點結果");
+        const date
