@@ -3,9 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>門市盤點系統 (最終版)</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <title>門市盤點系統 (除錯版)</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" 
+            onload="console.log('XLSX Loaded')" 
+            onerror="alert('❌ 嚴重錯誤：Excel 功能庫載入失敗！\n\n請檢查您的網路，或公司 Wi-Fi 是否阻擋了 cdnjs 網站。')"></script>
+            
+    <script src="https://unpkg.com/html5-qrcode" 
+            onload="console.log('QRCode Loaded')" 
+            onerror="alert('❌ 嚴重錯誤：掃描功能庫載入失敗！\n\n請檢查您的網路，或切換至 4G 測試。')"></script>
+
     <style>
         :root { --primary: #2563eb; --success: #22c55e; --danger: #ef4444; --bg: #f3f4f6; --card: #ffffff; --text: #1f2937; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); margin: 0; padding: 0; color: var(--text); padding-bottom: 80px; }
@@ -48,7 +55,7 @@
 <body>
 
 <div class="header">
-    <h1>📦 門市盤點系統</h1>
+    <h1>📦 門市盤點系統 (除錯版)</h1>
     <button class="btn-sm" onclick="resetAll()">重置</button>
 </div>
 
@@ -108,11 +115,18 @@
 </div>
 
 <script>
+    // 除錯：全域錯誤監聽
+    window.onerror = function(msg, url, line) {
+        alert("⚠️ 程式發生錯誤：\n" + msg + "\n行數：" + line);
+        return false;
+    };
+
     let inventoryData = [];
     let html5QrCode;
     let isScanning = false;
     let currentEditIndex = -1;
 
+    // 系統欄位設定
     const SYSTEM_COLUMNS = {
         code: ['產品代號'], 
         name: ['產品名稱'], 
@@ -127,38 +141,57 @@
     }
 
     function handleFile(input) {
-        const file = input.files[0];
-        if (!file) return;
-        const fileDate = new Date(file.lastModified).toLocaleString('zh-TW', { hour12: false });
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, {type: 'array'});
-            const sheetName = workbook.SheetNames[0]; 
-            const sheet = workbook.Sheets[sheetName];
-            const json = XLSX.utils.sheet_to_json(sheet);
-            
-            inventoryData = json.map(row => {
-                const rawCode = getValue(row, SYSTEM_COLUMNS.code);
-                const rawName = getValue(row, SYSTEM_COLUMNS.name);
-                const rawQty  = getValue(row, SYSTEM_COLUMNS.qty);
-                let cleanQty = 0;
-                if (rawQty) cleanQty = Math.floor(Number(rawQty)); 
-                return {
-                    code: rawCode ? String(rawCode).trim() : '', 
-                    name: rawName ? String(rawName).trim() : '未命名商品',
-                    sysQty: cleanQty,
-                    actQty: 0, 
-                    counted: false 
-                };
-            }).filter(item => item.code !== '');
+        try {
+            if (typeof XLSX === 'undefined') {
+                alert('錯誤：Excel 功能庫尚未載入，請檢查網路連線！');
+                return;
+            }
 
-            renderList();
-            updateStats();
-            alert(`✅ 匯入成功！\n\n📄 檔名：${file.name}\n📅 檔案日期：${fileDate}\n📦 商品項目：${inventoryData.length} 筆\n\n(已自動過濾小數點，只保留整數庫存)`);
-        };
-        reader.readAsArrayBuffer(file);
-        input.value = ''; 
+            const file = input.files[0];
+            if (!file) return;
+
+            const fileDate = new Date(file.lastModified).toLocaleString('zh-TW', { hour12: false });
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const sheetName = workbook.SheetNames[0]; 
+                    const sheet = workbook.Sheets[sheetName];
+                    const json = XLSX.utils.sheet_to_json(sheet);
+                    
+                    inventoryData = json.map(row => {
+                        const rawCode = getValue(row, SYSTEM_COLUMNS.code);
+                        const rawName = getValue(row, SYSTEM_COLUMNS.name);
+                        const rawQty  = getValue(row, SYSTEM_COLUMNS.qty);
+                        let cleanQty = 0;
+                        if (rawQty) cleanQty = Math.floor(Number(rawQty)); 
+                        return {
+                            code: rawCode ? String(rawCode).trim() : '', 
+                            name: rawName ? String(rawName).trim() : '未命名商品',
+                            sysQty: cleanQty,
+                            actQty: 0, 
+                            counted: false 
+                        };
+                    }).filter(item => item.code !== '');
+
+                    if (inventoryData.length === 0) {
+                        alert("⚠️ 匯入失敗：\n找不到資料，請檢查您的 Excel 標題欄位是否為：\n「產品代號」、「產品名稱」、「分倉存量」");
+                    } else {
+                        renderList();
+                        updateStats();
+                        alert(`✅ 匯入成功！\n\n📄 檔名：${file.name}\n📦 成功讀取：${inventoryData.length} 筆`);
+                    }
+                } catch (err) {
+                    alert("⚠️ 讀取 Excel 時發生錯誤：" + err.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            input.value = ''; 
+        } catch (e) {
+            alert("⚠️ 啟動匯入時發生錯誤：" + e.message);
+        }
     }
 
     function renderList(filterText = '') {
@@ -223,22 +256,31 @@
     function filterList(val) { renderList(val); }
 
     async function toggleScanner() {
-        const btn = document.getElementById('scanBtn');
-        const readerDiv = document.getElementById('reader');
-        if (isScanning) {
-            if (html5QrCode) { await html5QrCode.stop(); html5QrCode.clear(); }
-            readerDiv.style.display = 'none';
-            btn.classList.remove('active');
-            btn.innerHTML = '📷 掃描條碼';
-            isScanning = false;
-        } else {
-            readerDiv.style.display = 'block';
-            btn.classList.add('active');
-            btn.innerHTML = '⏹ 停止掃描';
-            html5QrCode = new Html5Qrcode("reader");
-            const config = { fps: 10, qrbox: { width: 250, height: 150 } };
-            html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess);
-            isScanning = true;
+        try {
+            if (typeof Html5Qrcode === 'undefined') {
+                alert('錯誤：掃描功能庫尚未載入，請檢查網路連線！');
+                return;
+            }
+
+            const btn = document.getElementById('scanBtn');
+            const readerDiv = document.getElementById('reader');
+            if (isScanning) {
+                if (html5QrCode) { await html5QrCode.stop(); html5QrCode.clear(); }
+                readerDiv.style.display = 'none';
+                btn.classList.remove('active');
+                btn.innerHTML = '📷 掃描條碼';
+                isScanning = false;
+            } else {
+                readerDiv.style.display = 'block';
+                btn.classList.add('active');
+                btn.innerHTML = '⏹ 停止掃描';
+                html5QrCode = new Html5Qrcode("reader");
+                const config = { fps: 10, qrbox: { width: 250, height: 150 } };
+                html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess);
+                isScanning = true;
+            }
+        } catch (e) {
+            alert("⚠️ 掃描器錯誤：" + e.message);
         }
     }
 
@@ -254,4 +296,13 @@
         const ws = XLSX.utils.json_to_sheet(exportData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "盤點結果");
-        const date
+        const date = new Date().toISOString().slice(0,10);
+        XLSX.writeFile(wb, `盤點結果_${date}.xlsx`);
+    }
+
+    function resetAll() {
+        if(confirm('確定要清空所有資料嗎？')) { inventoryData = []; renderList(); updateStats(); }
+    }
+</script>
+</body>
+</html>
