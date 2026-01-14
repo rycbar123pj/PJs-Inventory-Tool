@@ -1,5 +1,5 @@
 {
-    "name": "盤點小工具",
+    "name": "門市盤點系統",
     "short_name": "盤點Pro",
     "start_url": "index.html",
     "display": "standalone",
@@ -7,12 +7,12 @@
     "theme_color": "#2563eb",
     "icons": [
         {
-            "src": "https://cdn-icons-png.flaticon.com/512/1547/1547858.png",
+            "src": "https://cdn-icons-png.flaticon.com/512/2983/2983897.png",
             "sizes": "192x192",
             "type": "image/png"
         },
         {
-            "src": "https://cdn-icons-png.flaticon.com/512/1547/1547858.png",
+            "src": "https://cdn-icons-png.flaticon.com/512/2983/2983897.png",
             "sizes": "512x512",
             "type": "image/png"
         }
