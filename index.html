@@ -2,16 +2,36 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>盤點小工具 2.0</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>盤點小工具</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="盤點Pro">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1547/1547858.png">
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
         :root { --primary: #2563eb; --success: #22c55e; --warning: #f59e0b; --danger: #ef4444; --bg: #f3f4f6; --card: #ffffff; --text: #1f2937; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); margin: 0; padding: 0; color: var(--text); padding-bottom: 80px; }
+        
+        /* 針對 iPhone 瀏海屏的優化 */
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background: var(--bg); 
+            margin: 0; 
+            padding: 0; 
+            color: var(--text); 
+            padding-bottom: 80px;
+            /* 避免內容被瀏海擋住 */
+            padding-top: env(safe-area-inset-top); 
+        }
         
         /* 佈局樣式 */
-        .header { background: var(--primary); color: white; padding: 15px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .header { background: var(--primary); color: white; padding: 15px; position: sticky; top: env(safe-area-inset-top); z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
         .header h1 { margin: 0; font-size: 18px; font-weight: 600; }
         .btn-sm { background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px 10px; border-radius: 4px; font-size: 12px; }
         
@@ -49,7 +69,7 @@
         
         /* 彈窗優化 */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; justify-content: center; align-items: flex-end; }
-        .modal { background: white; width: 100%; border-radius: 16px 16px 0 0; padding: 20px; box-sizing: border-box; animation: slideUp 0.3s ease; max-width: 100vw; }
+        .modal { background: white; width: 100%; border-radius: 16px 16px 0 0; padding: 20px; box-sizing: border-box; animation: slideUp 0.3s ease; max-width: 100vw; padding-bottom: 40px; } /* 增加底部留白避免遮擋 */
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         
         .modal-title { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
@@ -63,13 +83,12 @@
         .btn-quick-correct { width: 100%; padding: 12px; background: var(--warning); color: white; border: none; border-radius: 8px; font-weight: bold; margin-bottom: 20px; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
         
         .modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        /* 移除 .fab 樣式 */
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h1>📦 盤點小工具 2.0</h1>
+    <h1>📦 盤點小工具</h1>
     <button class="btn-sm" onclick="resetAll()">重置</button>
 </div>
 
@@ -102,7 +121,7 @@
 
 <div class="item-list" id="itemList">
     <div style="text-align:center; color:#999; padding: 20px;">
-        請先匯入盤點系統 Excel
+        請先匯入公司系統 Excel
     </div>
 </div>
 
@@ -112,7 +131,7 @@
         <div class="modal-subtitle">系統應有: <span id="modalSysStock">0</span></div>
         
         <button class="btn-quick-correct" onclick="quickCorrect()">
-            ⚡ 一鍵正確 (直接輸入 <span id="btnSysQty">0</span>)
+            ⚡ 一鍵正確 (直接儲存 <span id="btnSysQty">0</span>)
         </button>
 
         <div class="modal-input-group">
