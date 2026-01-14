@@ -6,17 +6,18 @@
     <title>盤點小工具</title>
     
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#2563eb">
+    <meta name="theme-color" content="#0ABAB5">
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="盤點Pro">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2983/2983897.png">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
-        :root { --primary: #2563eb; --success: #22c55e; --warning: #f59e0b; --danger: #ef4444; --bg: #f3f4f6; --card: #ffffff; --text: #1f2937; }
+        /* 修改點：將 primary 主色改為 Tiffany 綠 (#0ABAB5) */
+        :root { --primary: #0ABAB5; --success: #22c55e; --warning: #f59e0b; --danger: #ef4444; --bg: #f3f4f6; --card: #ffffff; --text: #1f2937; }
         
         /* 針對 iPhone 瀏海屏的優化 */
         body { 
@@ -26,7 +27,6 @@
             padding: 0; 
             color: var(--text); 
             padding-bottom: 80px;
-            /* 避免內容被瀏海擋住 */
             padding-top: env(safe-area-inset-top); 
         }
         
@@ -38,7 +38,7 @@
         /* 儀表板 */
         .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 15px; }
         .stat-card { background: var(--card); padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05); cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
-        .stat-card.active { border-color: var(--primary); background-color: #eff6ff; }
+        .stat-card.active { border-color: var(--primary); background-color: #e0f2f1; } /* 修改點：選中背景色微調 */
         .stat-num { font-size: 24px; font-weight: bold; display: block; margin-bottom: 5px; }
         .stat-label { font-size: 14px; color: #6b7280; font-weight: 500; }
 
@@ -69,7 +69,7 @@
         
         /* 彈窗優化 */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; justify-content: center; align-items: flex-end; }
-        .modal { background: white; width: 100%; border-radius: 16px 16px 0 0; padding: 20px; box-sizing: border-box; animation: slideUp 0.3s ease; max-width: 100vw; padding-bottom: 40px; } /* 增加底部留白避免遮擋 */
+        .modal { background: white; width: 100%; border-radius: 16px 16px 0 0; padding: 20px; box-sizing: border-box; animation: slideUp 0.3s ease; max-width: 100vw; padding-bottom: 40px; } 
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         
         .modal-title { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
@@ -345,4 +345,3 @@
 </script>
 </body>
 </html>
-
