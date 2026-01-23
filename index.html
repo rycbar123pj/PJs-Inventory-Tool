@@ -176,6 +176,26 @@
                 const sheet = workbook.Sheets[sheetName];
                 const json = XLSX.utils.sheet_to_json(sheet);
                 
+                // --- 🛡️ 防呆檢查開始 ---
+                if (json.length === 0) {
+                    alert("❌ 錯誤：這是一個空檔案！");
+                    input.value = ''; 
+                    return;
+                }
+
+                // 檢查第一筆資料是否包含必要的欄位
+                const firstRow = json[0];
+                const hasCode = getValue(firstRow, SYSTEM_COLUMNS.code) !== null;
+                const hasName = getValue(firstRow, SYSTEM_COLUMNS.name) !== null;
+
+                // 修改點：更換錯誤訊息文字
+                if (!hasCode && !hasName) {
+                    alert("❌ 格式錯誤！系統找不到欄位。請確認是否選錯檔案？");
+                    input.value = ''; // 清空選擇
+                    return; // 直接中斷
+                }
+                // --- 🛡️ 防呆檢查結束 ---
+                
                 inventoryData = json.map(row => {
                     const rawCode = getValue(row, SYSTEM_COLUMNS.code);
                     const rawName = getValue(row, SYSTEM_COLUMNS.name);
@@ -191,10 +211,16 @@
                     };
                 }).filter(item => item.code !== '');
 
+                if (inventoryData.length === 0) {
+                     alert("❌ 匯入失敗！雖然欄位名稱正確，但讀取不到任何有效商品資料。");
+                     return;
+                }
+
                 setFilterMode('all');
                 alert(`✅ 匯入成功！\n\n📄 檔名：${file.name}\n📅 檔案日期：${fileDate}\n📦 商品項目：${inventoryData.length} 筆`);
             } catch(err) {
-                alert("匯入失敗，請確認檔案格式");
+                alert("❌ 檔案讀取失敗，請確認這是否為有效的 Excel 檔。");
+                console.error(err);
             }
         };
         reader.readAsArrayBuffer(file);
@@ -380,3 +406,4 @@
 </script>
 </body>
 </html>
+
