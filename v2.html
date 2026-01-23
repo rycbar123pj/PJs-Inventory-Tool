@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>盤點小工具 V4.0</title>
+    <title>盤點小工具 V4.1</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
     <link rel="manifest" href="manifest.json">
@@ -23,8 +23,8 @@
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
             background: var(--bg); margin: 0; padding: 0; color: var(--text); 
-            /* V4.0: 預留高度給 Header + Stats + Search (約 160px) */
-            padding-top: 180px; 
+            /* Header + Stats + Search 固定區高度預留 */
+            padding-top: 175px; 
             padding-bottom: 80px; 
             touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; 
         }
@@ -53,29 +53,32 @@
         .btn-file-wrapper { position: relative; overflow: hidden; }
         .btn-file-wrapper input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 
-        /* 2. Stats (V4.0: 縮小 padding，字體加粗) */
+        /* 2. Stats */
         .stats-bar {
-            background: var(--bg); padding: 8px 15px; /* 縮小上下間距 */
+            background: var(--bg); padding: 8px 15px; 
             display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
         }
         .mini-stat {
-            background: white; padding: 8px 10px; /* 縮小內距 */
+            background: white; padding: 8px 10px; 
             border-radius: 6px;
             display: flex; justify-content: space-between; align-items: center;
             border: 1px solid #e5e7eb; cursor: pointer;
         }
         .mini-stat.active { border-color: var(--primary); background: #e0f2f1; }
-        .mini-stat-label { font-size: 13px; color: #555; font-weight: 700; } /* 加粗 */
-        .mini-stat-val { font-size: 20px; font-weight: 800; color: #333; } /* 加粗 */
+        .mini-stat-label { font-size: 13px; color: #555; font-weight: 700; } 
+        .mini-stat-val { font-size: 20px; font-weight: 800; color: #333; } 
 
-        /* 3. Search (V4.0: 固定在上方) */
+        /* 3. Search (V4.1: 字體縮小) */
         .search-container {
-            padding: 0 15px 10px 15px; /* 下方留一點白 */
+            padding: 0 15px 10px 15px; 
             background: var(--bg);
         }
         .search-input { 
-            width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; 
-            font-size: 16px; box-sizing: border-box; -webkit-appearance: none; 
+            width: 100%; 
+            padding: 8px 10px; /* 稍微縮減高度 */
+            border: 1px solid #ddd; border-radius: 8px; 
+            font-size: 14px; /* 改為 14px */
+            box-sizing: border-box; -webkit-appearance: none; 
             background: white; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
@@ -90,14 +93,14 @@
         }
         #reader video { object-fit: cover; width: 100% !important; height: 100% !important; border-radius: 12px; }
 
-        /* V4.0: 左下懸浮掃描按鈕 (FAB) */
+        /* 左下懸浮掃描按鈕 (FAB) */
         .btn-fab-scan {
             position: fixed; 
             bottom: 30px; 
-            left: 20px; /* 改到左邊 */
+            left: 20px; 
             width: 56px; height: 56px;
             border-radius: 50%; 
-            background: var(--text); /* 深色背景 */
+            background: var(--text); 
             color: white;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3); 
             border: none;
@@ -107,7 +110,7 @@
             transition: transform 0.1s;
         }
         .btn-fab-scan:active { transform: scale(0.95); }
-        .btn-fab-scan.active { background: var(--danger); } /* 掃描中變紅 */
+        .btn-fab-scan.active { background: var(--danger); } 
 
         /* List Styling */
         .item-list { padding: 0 15px; }
@@ -144,17 +147,17 @@
         
         .flash-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2000; opacity: 0; transition: opacity 0.2s; }
         
-        /* V4.0: Toast 強制置中修復 */
+        /* Toast 置中 */
         .toast { 
             position: fixed; bottom: 100px; 
-            left: 50%; transform: translateX(-50%); /* 絕對置中 */
+            left: 50%; transform: translateX(-50%); 
             background-color: rgba(0, 0, 0, 0.85); color: white; 
             padding: 12px 24px; border-radius: 30px; font-size: 16px; 
             z-index: 3000; display: none; 
             white-space: nowrap; 
             box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
             text-align: center;
-            width: fit-content; /* 關鍵：寬度適應內容 */
+            width: fit-content; 
             max-width: 90%;
         }
     </style>
@@ -313,7 +316,6 @@
                     };
                 }).filter(item => item.code !== '');
                 setFilterMode('all');
-                // V4.0: 使用自製 Toast 替代 alert，確保置中
                 showToast(`✅ 已載入 ${inventoryData.length} 筆資料`);
             } catch(err) { alert("❌ 讀取失敗"); }
         };
@@ -381,7 +383,6 @@
 
     function openEditModal(index) {
         if(isScanning && html5QrCode) {
-            // 開啟編輯視窗時，暫停掃描但不要關閉相機介面，體驗較好
             html5QrCode.pause();
         }
         currentEditIndex = index;
@@ -441,7 +442,6 @@
     function closeModal() {
         document.getElementById('editModal').style.display = 'none';
         currentEditIndex = -1;
-        // 如果原本在掃描模式，恢復掃描
         if(isScanning && html5QrCode) html5QrCode.resume();
     }
 
@@ -455,20 +455,19 @@
             section.classList.remove('show');
             readerDiv.style.display = 'none';
             btn.classList.remove('active');
-            btn.innerHTML = '📷'; // 變回相機
+            btn.innerHTML = '📷'; 
             isScanning = false;
         } else {
             section.classList.add('show');
             readerDiv.style.display = 'block';
             btn.classList.add('active');
-            btn.innerHTML = '⏹'; // 變回停止
+            btn.innerHTML = '⏹'; 
             html5QrCode = new Html5Qrcode("reader");
             const config = { fps: 10, qrbox: { width: 250, height: 150 } };
             if (audioCtx.state === 'suspended') audioCtx.resume();
             html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess);
             isScanning = true;
             
-            // 自動捲動到最上方，確保看到相機
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }
