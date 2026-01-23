@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>盤點小工具 V2.6 </title>
+    <title>盤點小工具 V4.0</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
     <link rel="manifest" href="manifest.json">
@@ -23,18 +23,28 @@
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
             background: var(--bg); margin: 0; padding: 0; color: var(--text); 
-            padding-bottom: 80px; padding-top: env(safe-area-inset-top); 
-            touch-action: manipulation; -webkit-tap-highlight-color: transparent; 
+            /* V4.0: 預留高度給 Header + Stats + Search (約 160px) */
+            padding-top: 160px; 
+            padding-bottom: 80px; 
+            touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; 
         }
         
-        /* Header */
+        input { user-select: text; }
+
+        /* V4.0: 頂部固定組合包 */
+        .fixed-group {
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 100;
+            background: var(--bg);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        /* 1. Header */
         .header { 
-            background: var(--primary); color: white; padding: 20px 15px; 
+            background: var(--primary); color: white; padding: 15px; 
             display: flex; justify-content: space-between; align-items: center; 
         }
         .header h1 { margin: 0; font-size: 18px; font-weight: 700; }
         .header-tools { display: flex; gap: 10px; }
-        
         .btn-tool { 
             background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); 
             color: white; padding: 5px 10px; border-radius: 6px; font-size: 12px; 
@@ -43,65 +53,71 @@
         .btn-file-wrapper { position: relative; overflow: hidden; }
         .btn-file-wrapper input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 
-        /* Sticky Stats Bar */
-        .sticky-stats {
-            position: sticky; top: 0; z-index: 90;
-            background: var(--bg); padding: 10px 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        /* 2. Stats (V4.0: 縮小 padding，字體加粗) */
+        .stats-bar {
+            background: var(--bg); padding: 8px 15px; /* 縮小上下間距 */
             display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
         }
         .mini-stat {
-            background: white; padding: 12px 10px; border-radius: 6px;
+            background: white; padding: 8px 10px; /* 縮小內距 */
+            border-radius: 6px;
             display: flex; justify-content: space-between; align-items: center;
             border: 1px solid #e5e7eb; cursor: pointer;
         }
         .mini-stat.active { border-color: var(--primary); background: #e0f2f1; }
-        .mini-stat-label { font-size: 14px; color: #666; } 
-        .mini-stat-val { font-size: 20px; font-weight: bold; } 
+        .mini-stat-label { font-size: 13px; color: #555; font-weight: 700; } /* 加粗 */
+        .mini-stat-val { font-size: 20px; font-weight: 800; color: #333; } /* 加粗 */
 
-        /* Scan Section */
-        .scan-section { padding: 0 15px; margin-top: 10px; }
-        .btn-scan { 
-            width: 100%; padding: 15px; background: var(--text); color: white; 
-            border: none; border-radius: 8px; font-weight: bold; font-size: 18px; 
-            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        /* 3. Search (V4.0: 固定在上方) */
+        .search-container {
+            padding: 0 15px 10px 15px; /* 下方留一點白 */
+            background: var(--bg);
         }
-        .btn-scan.active { background: var(--danger); }
+        .search-input { 
+            width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; 
+            font-size: 16px; box-sizing: border-box; -webkit-appearance: none; 
+            background: white; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        /* 掃描區塊 (預設隱藏在列表最上方) */
+        .scan-section { padding: 0 15px; margin-bottom: 10px; display: none; }
+        .scan-section.show { display: block; }
         
         #reader { 
-            width: 100%; height: 250px; margin-bottom: 15px; 
-            display: none; background: black; border-radius: 12px; 
-            overflow: hidden; position: relative;
+            width: 100%; height: 250px; 
+            background: black; border-radius: 12px; 
+            overflow: hidden; position: relative; 
         }
-        #reader video {
-            object-fit: cover; width: 100% !important; height: 100% !important; border-radius: 12px; 
-        }
+        #reader video { object-fit: cover; width: 100% !important; height: 100% !important; border-radius: 12px; }
 
-        /* Search Box */
-        .search-box { padding: 10px 15px; }
-        .search-input { 
-            width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; 
-            /* Android 鍵盤優化 */
-            -webkit-appearance: none; 
+        /* V4.0: 左下懸浮掃描按鈕 (FAB) */
+        .btn-fab-scan {
+            position: fixed; 
+            bottom: 30px; 
+            left: 20px; /* 改到左邊 */
+            width: 56px; height: 56px;
+            border-radius: 50%; 
+            background: var(--text); /* 深色背景 */
+            color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3); 
+            border: none;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 26px; 
+            z-index: 900; 
+            transition: transform 0.1s;
         }
+        .btn-fab-scan:active { transform: scale(0.95); }
+        .btn-fab-scan.active { background: var(--danger); } /* 掃描中變紅 */
 
         /* List Styling */
         .item-list { padding: 0 15px; }
-        .item-card { 
-            background: var(--card); padding: 12px; margin-bottom: 8px; 
-            border-radius: 8px; border-left: 4px solid #ddd; 
-            display: flex; justify-content: space-between; align-items: center; 
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05); 
-        }
+        .item-card { background: var(--card); padding: 12px; margin-bottom: 8px; border-radius: 8px; border-left: 4px solid #ddd; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .item-card.done { border-left-color: var(--success); }
         .item-card.error { border-left-color: var(--danger); background-color: #fef2f2; }
         .item-card.over { border-left-color: var(--blue); background-color: #eff6ff; } 
-
         .item-info { flex: 1; padding-right: 10px; min-width: 0; }
         .item-info h3 { margin: 0 0 3px 0; font-size: 15px; line-height: 1.4; }
         .item-info p { margin: 0; font-size: 13px; color: #6b7280; font-family: monospace; } 
-        
         .item-count { text-align: right; display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
         .diff-badge { font-size: 20px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
         .sub-count { font-size: 12px; color: #777; background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-weight: 500; }
@@ -109,36 +125,37 @@
         /* Modal */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; justify-content: center; align-items: flex-end; }
         .modal { background: white; width: 100%; border-radius: 16px 16px 0 0; padding: 20px; box-sizing: border-box; padding-bottom: 40px; }
-        
         .modal-header { border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
         .modal-title { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
         .modal-code { font-family: monospace; color: #666; font-size: 14px; background: #f3f4f6; padding: 2px 6px; border-radius: 4px; }
-        
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px; }
         .stat-box { background: white; padding: 8px 6px; border-radius: 6px; border: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
         .stat-label { font-size: 12px; color: #666; font-weight: 500; }
         .stat-val { font-size: 16px; font-weight: bold; color: #333; } 
-        
         .val-rem.ok { color: var(--success); }
         .val-rem.ng { color: var(--danger); }
         .val-rem.over { color: var(--blue); }
-
         .btn-quick-correct { width: 100%; padding: 10px; background: var(--warning); color: white; border: none; border-radius: 8px; font-weight: bold; margin-bottom: 20px; font-size: 15px; cursor: pointer; }
-
         .control-group { display: flex; gap: 8px; align-items: center; justify-content: center; margin-bottom: 10px; }
         .btn-circle { width: 40px; height: 40px; border-radius: 50%; border: none; font-size: 22px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; background: #eee; color: #333; padding: 0; padding-bottom: 3px; line-height: 1; }
         .qty-input-main { width: 80px; height: 40px; font-size: 22px; text-align: center; font-weight: bold; border: 2px solid var(--primary); border-radius: 8px; background: #fff; }
-
         .modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
         .btn-modal { padding: 12px; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; color: white; }
-
+        
         .flash-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2000; opacity: 0; transition: opacity 0.2s; }
         
+        /* V4.0: Toast 強制置中修復 */
         .toast { 
-            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); 
-            background-color: rgba(0, 0, 0, 0.85); color: white; padding: 12px 24px; 
-            border-radius: 30px; font-size: 16px; z-index: 3000; display: none; 
-            white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
+            position: fixed; bottom: 100px; 
+            left: 50%; transform: translateX(-50%); /* 絕對置中 */
+            background-color: rgba(0, 0, 0, 0.85); color: white; 
+            padding: 12px 24px; border-radius: 30px; font-size: 16px; 
+            z-index: 3000; display: none; 
+            white-space: nowrap; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
+            text-align: center;
+            width: fit-content; /* 關鍵：寬度適應內容 */
+            max-width: 90%;
         }
     </style>
 </head>
@@ -146,37 +163,38 @@
 
 <div id="flashOverlay" class="flash-overlay"></div>
 
-<div class="header">
-    <h1>📦 盤點小工具</h1>
-    <div class="header-tools">
-        <label class="btn-tool btn-file-wrapper">
-            📄 匯入
-            <input type="file" id="fileInput" accept=".xlsx, .xls" onchange="handleFile(this)">
-        </label>
-        <button type="button" class="btn-tool" onclick="resetAll()">🔄 重置</button>
+<div class="fixed-group">
+    <div class="header">
+        <h1>📦 盤點小工具</h1>
+        <div class="header-tools">
+            <label class="btn-tool btn-file-wrapper">
+                📄 匯入
+                <input type="file" id="fileInput" accept=".xlsx, .xls" onchange="handleFile(this)">
+            </label>
+            <button type="button" class="btn-tool" onclick="resetAll()">🔄 重置</button>
+        </div>
+    </div>
+
+    <div class="stats-bar">
+        <div class="mini-stat active" id="tabAll" onclick="setFilterMode('all')">
+            <span class="mini-stat-label">總品項</span>
+            <span class="mini-stat-val" id="totalItems">0</span>
+        </div>
+        <div class="mini-stat" id="tabUnfinished" onclick="setFilterMode('unfinished')">
+            <span class="mini-stat-label">未盤/差異</span>
+            <span class="mini-stat-val" style="color:var(--danger)" id="unfinishedItems">0</span>
+        </div>
+    </div>
+
+    <div class="search-container">
+        <input type="text" id="mainSearchInput" class="search-input" 
+               inputmode="numeric" pattern="[0-9]*" enterkeyhint="search" autocomplete="off"
+               placeholder="🔍 輸入代號後幾碼..." oninput="filterList(this.value)">
     </div>
 </div>
 
-<div class="sticky-stats">
-    <div class="mini-stat active" id="tabAll" onclick="setFilterMode('all')">
-        <span class="mini-stat-label">總品項</span>
-        <span class="mini-stat-val" id="totalItems">0</span>
-    </div>
-    <div class="mini-stat" id="tabUnfinished" onclick="setFilterMode('unfinished')">
-        <span class="mini-stat-label">未盤/差異</span>
-        <span class="mini-stat-val" style="color:var(--danger)" id="unfinishedItems">0</span>
-    </div>
-</div>
-
-<div class="scan-section">
+<div class="scan-section" id="scanSection">
     <div id="reader"></div>
-    <button type="button" class="btn-scan" id="scanBtn" onclick="toggleScanner()">
-        📷 連續掃描模式
-    </button>
-</div>
-
-<div class="search-box">
-    <input type="text" class="search-input" inputmode="numeric" pattern="[0-9]*" placeholder="🔍 輸入代號後幾碼..." oninput="filterList(this.value)">
 </div>
 
 <div class="item-list" id="itemList">
@@ -184,6 +202,10 @@
         請點擊右上方「📄匯入」載入 Excel
     </div>
 </div>
+
+<button type="button" class="btn-fab-scan" id="fabScan" onclick="toggleScanner()">
+    📷
+</button>
 
 <div id="toast" class="toast"></div>
 
@@ -193,7 +215,6 @@
             <div class="modal-title" id="modalName">商品名稱</div>
             <span class="modal-code" id="modalCode">CODE123</span>
         </div>
-
         <div class="stats-grid">
             <div class="stat-box">
                 <span class="stat-label">應有</span>
@@ -208,17 +229,16 @@
                 <span class="stat-val val-rem" id="modalRem">0</span>
             </div>
         </div>
-
         <button type="button" class="btn-quick-correct" onclick="quickCorrect()">
             ⚡ 一鍵正確 (<span id="btnQuickQty"></span>個)
         </button>
-
         <div class="control-group">
             <button type="button" class="btn-circle" onclick="adjustQty(-1)">-</button>
-            <input type="number" id="modalQty" class="qty-input-main" value="0" inputmode="numeric" pattern="[0-9]*" onclick="this.select()" oninput="syncInputToStats()">
+            <input type="number" id="modalQty" class="qty-input-main" value="0" 
+                   inputmode="numeric" pattern="[0-9]*" enterkeyhint="done" autocomplete="off"
+                   onclick="this.select()" oninput="syncInputToStats()">
             <button type="button" class="btn-circle" onclick="adjustQty(1)">+</button>
         </div>
-        
         <div class="modal-btns">
             <button type="button" class="btn-modal" style="background: #9ca3af;" onclick="closeModal()">取消</button>
             <button type="button" class="btn-modal" style="background: var(--primary);" onclick="saveQty()">儲存</button>
@@ -277,12 +297,10 @@
                 const sheet = workbook.Sheets[workbook.SheetNames[0]];
                 const json = XLSX.utils.sheet_to_json(sheet);
                 if (json.length === 0) { alert("❌ 空白檔案"); return; }
-                
                 const firstRow = json[0];
                 const hasCode = getValue(firstRow, SYSTEM_COLUMNS.code) !== null;
                 const hasName = getValue(firstRow, SYSTEM_COLUMNS.name) !== null;
                 if (!hasCode && !hasName) { alert("❌ 格式錯誤"); input.value = ''; return; }
-                
                 inventoryData = json.map(row => {
                     const rawCode = getValue(row, SYSTEM_COLUMNS.code);
                     const rawName = getValue(row, SYSTEM_COLUMNS.name);
@@ -295,7 +313,8 @@
                     };
                 }).filter(item => item.code !== '');
                 setFilterMode('all');
-                alert(`✅ 已載入 ${inventoryData.length} 筆資料`);
+                // V4.0: 使用自製 Toast 替代 alert，確保置中
+                showToast(`✅ 已載入 ${inventoryData.length} 筆資料`);
             } catch(err) { alert("❌ 讀取失敗"); }
         };
         reader.readAsArrayBuffer(file); input.value = ''; 
@@ -304,42 +323,34 @@
     function renderList(filterText = '') {
         const container = document.getElementById('itemList');
         container.innerHTML = '';
-
         if (inventoryData.length === 0) {
              container.innerHTML = `<div style="text-align:center; color:#999; padding: 40px 20px;">請點擊右上方「📄匯入」載入 Excel</div>`;
              return;
         }
-        
         let filtered = inventoryData.filter(item => 
             item.code.toLowerCase().includes(filterText.toLowerCase()) || 
             item.name.toLowerCase().includes(filterText.toLowerCase())
         );
-
         if (filterMode === 'unfinished') {
             filtered = filtered.filter(item => !(item.counted && item.actQty === item.sysQty));
         }
-
         if (filtered.length === 0) {
             container.innerHTML = `<div style="text-align:center; color:#999; padding: 20px;">無符合項目</div>`;
             return;
         }
-
         filtered.forEach((item) => {
             const realIndex = inventoryData.indexOf(item);
             let statusClass = 'todo';
             const remaining = item.sysQty - item.actQty;
             let remColor = 'var(--danger)';
-            
             if (item.counted) {
                 if (remaining === 0) { statusClass = 'done'; remColor = 'var(--success)'; }
                 else if (remaining < 0) { statusClass = 'over'; remColor = 'var(--blue)'; }
                 else { statusClass = 'error'; }
             }
-
             const div = document.createElement('div');
             div.className = `item-card ${statusClass}`;
             div.onclick = () => openEditModal(realIndex);
-            
             div.innerHTML = `
                 <div class="item-info">
                     <h3>${item.name}</h3>
@@ -365,22 +376,22 @@
         filterMode = mode;
         document.getElementById('tabAll').className = mode === 'all' ? 'mini-stat active' : 'mini-stat';
         document.getElementById('tabUnfinished').className = mode === 'unfinished' ? 'mini-stat active' : 'mini-stat';
-        renderList(document.querySelector('.search-input').value);
+        renderList(document.getElementById('mainSearchInput').value);
     }
 
     function openEditModal(index) {
-        if(isScanning && html5QrCode) html5QrCode.pause();
+        if(isScanning && html5QrCode) {
+            // 開啟編輯視窗時，暫停掃描但不要關閉相機介面，體驗較好
+            html5QrCode.pause();
+        }
         currentEditIndex = index;
         const item = inventoryData[index];
-        
         document.getElementById('modalName').innerText = item.name;
         document.getElementById('modalCode').innerText = item.code;
         document.getElementById('modalSys').innerText = item.sysQty;
         document.getElementById('btnQuickQty').innerText = item.sysQty;
-
         const currentAct = item.counted ? item.actQty : 0;
         document.getElementById('modalQty').value = currentAct;
-        
         syncInputToStats(); 
         document.getElementById('editModal').style.display = 'flex';
     }
@@ -389,14 +400,10 @@
         if (currentEditIndex === -1) return;
         const item = inventoryData[currentEditIndex];
         const currentInput = Number(document.getElementById('modalQty').value);
-        
         document.getElementById('modalAct').innerText = currentInput;
-        
         const rem = item.sysQty - currentInput;
         const remEl = document.getElementById('modalRem');
         remEl.innerText = rem;
-        
-        // 變色邏輯
         remEl.className = 'stat-val val-rem'; 
         if(rem === 0) remEl.classList.add('ok');
         else if (rem < 0) remEl.classList.add('over');
@@ -423,34 +430,46 @@
         const qty = Number(document.getElementById('modalQty').value);
         inventoryData[currentEditIndex].actQty = qty;
         inventoryData[currentEditIndex].counted = true;
+        
+        if (document.activeElement) { document.activeElement.blur(); }
         closeModal();
-        renderList(document.querySelector('.search-input').value);
+        
+        document.getElementById('mainSearchInput').value = '';
+        renderList(''); 
     }
 
     function closeModal() {
         document.getElementById('editModal').style.display = 'none';
         currentEditIndex = -1;
+        // 如果原本在掃描模式，恢復掃描
         if(isScanning && html5QrCode) html5QrCode.resume();
     }
 
     async function toggleScanner() {
-        const btn = document.getElementById('scanBtn');
+        const btn = document.getElementById('fabScan');
         const readerDiv = document.getElementById('reader');
+        const section = document.getElementById('scanSection');
+        
         if (isScanning) {
             try { if (html5QrCode) { await html5QrCode.stop(); html5QrCode.clear(); } } catch(e) {}
+            section.classList.remove('show');
             readerDiv.style.display = 'none';
             btn.classList.remove('active');
-            btn.innerHTML = '📷 連續掃描模式';
+            btn.innerHTML = '📷'; // 變回相機
             isScanning = false;
         } else {
+            section.classList.add('show');
             readerDiv.style.display = 'block';
             btn.classList.add('active');
-            btn.innerHTML = '⏹ 停止掃描';
+            btn.innerHTML = '⏹'; // 變回停止
             html5QrCode = new Html5Qrcode("reader");
             const config = { fps: 10, qrbox: { width: 250, height: 150 } };
             if (audioCtx.state === 'suspended') audioCtx.resume();
             html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess);
             isScanning = true;
+            
+            // 自動捲動到最上方，確保看到相機
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }
 
@@ -459,7 +478,6 @@
         if (decodedText === lastScannedCode && now - lastScanTime < 1000) return;
         lastScannedCode = decodedText;
         lastScanTime = now;
-
         const item = inventoryData.find(i => i.code === decodedText);
         if (item) {
             item.actQty++;
@@ -468,7 +486,7 @@
             triggerFlash('success');
             showToast(`✅ ${item.name} (+1)`);
             updateStats();
-            renderList(document.querySelector('.search-input').value);
+            renderList(document.getElementById('mainSearchInput').value);
         } else {
             playBeep('error');
             triggerFlash('error');
