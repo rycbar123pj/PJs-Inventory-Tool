@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>盤點小工具 V3.1</title>
+    <title>盤點小工具 V3.2</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
     <link rel="manifest" href="manifest.json">
@@ -22,132 +22,71 @@
         
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-            background: var(--bg); 
-            margin: 0; padding: 0; 
-            color: var(--text); 
-            padding-bottom: 80px;
-            padding-top: env(safe-area-inset-top); 
-            touch-action: manipulation; 
-            -webkit-tap-highlight-color: transparent; 
-            user-select: none; 
+            background: var(--bg); margin: 0; padding: 0; color: var(--text); 
+            padding-bottom: 80px; padding-top: env(safe-area-inset-top); 
+            touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; 
         }
         
         input { user-select: text; }
 
-        /* Header */
-        .header { 
-            background: var(--primary); color: white; padding: 20px 15px; 
-            display: flex; justify-content: space-between; align-items: center; 
-        }
+        .header { background: var(--primary); color: white; padding: 20px 15px; display: flex; justify-content: space-between; align-items: center; }
         .header h1 { margin: 0; font-size: 18px; font-weight: 700; }
         .header-tools { display: flex; gap: 10px; }
         
-        .btn-tool { 
-            background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); 
-            color: white; padding: 5px 10px; border-radius: 6px; font-size: 12px; 
-            cursor: pointer; display: flex; align-items: center; gap: 4px;
-        }
+        .btn-tool { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 5px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px; }
         .btn-file-wrapper { position: relative; overflow: hidden; }
         .btn-file-wrapper input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 
-        /* Sticky Stats Bar */
-        .sticky-stats {
-            position: sticky; top: 0; z-index: 90;
-            background: var(--bg); padding: 10px 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-        }
-        .mini-stat {
-            background: white; padding: 12px 10px; border-radius: 6px;
-            display: flex; justify-content: space-between; align-items: center;
-            border: 1px solid #e5e7eb; cursor: pointer;
-        }
+        .sticky-stats { position: sticky; top: 0; z-index: 90; background: var(--bg); padding: 10px 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .mini-stat { background: white; padding: 12px 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e5e7eb; cursor: pointer; }
         .mini-stat.active { border-color: var(--primary); background: #e0f2f1; }
         .mini-stat-label { font-size: 14px; color: #666; } 
         .mini-stat-val { font-size: 20px; font-weight: bold; } 
 
-        /* Scan Section */
         .scan-section { padding: 0 15px; margin-top: 10px; }
-        .btn-scan { 
-            width: 100%; padding: 15px; background: var(--text); color: white; 
-            border: none; border-radius: 8px; font-weight: bold; font-size: 18px; 
-            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
+        .btn-scan { width: 100%; padding: 15px; background: var(--text); color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .btn-scan.active { background: var(--danger); }
         
-        #reader { 
-            width: 100%; height: 250px; margin-bottom: 15px; 
-            display: none; background: black; border-radius: 12px; 
-            overflow: hidden; position: relative;
-        }
-        #reader video {
-            object-fit: cover; width: 100% !important; height: 100% !important; border-radius: 12px; 
-        }
+        #reader { width: 100%; height: 250px; margin-bottom: 15px; display: none; background: black; border-radius: 12px; overflow: hidden; position: relative; }
+        #reader video { object-fit: cover; width: 100% !important; height: 100% !important; border-radius: 12px; }
 
-        /* Search Box */
         .search-box { padding: 10px 15px; }
-        .search-input { 
-            width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; 
-            -webkit-appearance: none; 
-        }
+        .search-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; -webkit-appearance: none; }
 
-        /* List Styling */
         .item-list { padding: 0 15px; }
-        .item-card { 
-            background: var(--card); padding: 12px; margin-bottom: 8px; 
-            border-radius: 8px; border-left: 4px solid #ddd; 
-            display: flex; justify-content: space-between; align-items: center; 
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05); 
-        }
+        .item-card { background: var(--card); padding: 12px; margin-bottom: 8px; border-radius: 8px; border-left: 4px solid #ddd; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .item-card.done { border-left-color: var(--success); }
         .item-card.error { border-left-color: var(--danger); background-color: #fef2f2; }
         .item-card.over { border-left-color: var(--blue); background-color: #eff6ff; } 
-
         .item-info { flex: 1; padding-right: 10px; min-width: 0; }
         .item-info h3 { margin: 0 0 3px 0; font-size: 15px; line-height: 1.4; }
         .item-info p { margin: 0; font-size: 13px; color: #6b7280; font-family: monospace; } 
-        
         .item-count { text-align: right; display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
         .diff-badge { font-size: 20px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
         .sub-count { font-size: 12px; color: #777; background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-weight: 500; }
 
-        /* Modal */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; justify-content: center; align-items: flex-end; }
         .modal { background: white; width: 100%; border-radius: 16px 16px 0 0; padding: 20px; box-sizing: border-box; padding-bottom: 40px; }
-        
         .modal-header { border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
         .modal-title { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
         .modal-code { font-family: monospace; color: #666; font-size: 14px; background: #f3f4f6; padding: 2px 6px; border-radius: 4px; }
-        
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px; }
         .stat-box { background: white; padding: 8px 6px; border-radius: 6px; border: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
         .stat-label { font-size: 12px; color: #666; font-weight: 500; }
         .stat-val { font-size: 16px; font-weight: bold; color: #333; } 
-        
         .val-rem.ok { color: var(--success); }
         .val-rem.ng { color: var(--danger); }
         .val-rem.over { color: var(--blue); }
-
         .btn-quick-correct { width: 100%; padding: 10px; background: var(--warning); color: white; border: none; border-radius: 8px; font-weight: bold; margin-bottom: 20px; font-size: 15px; cursor: pointer; }
-
         .control-group { display: flex; gap: 8px; align-items: center; justify-content: center; margin-bottom: 10px; }
         .btn-circle { width: 40px; height: 40px; border-radius: 50%; border: none; font-size: 22px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; background: #eee; color: #333; padding: 0; padding-bottom: 3px; line-height: 1; }
         .qty-input-main { width: 80px; height: 40px; font-size: 22px; text-align: center; font-weight: bold; border: 2px solid var(--primary); border-radius: 8px; background: #fff; }
-
         .modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
         .btn-modal { padding: 12px; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; color: white; }
-
-        .flash-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2000; opacity: 0; transition: opacity 0.2s; }
         
-        .toast { 
-            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); 
-            background-color: rgba(0, 0, 0, 0.85); color: white; padding: 12px 24px; 
-            border-radius: 30px; font-size: 16px; z-index: 3000; display: none; 
-            white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
-        }
+        .flash-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2000; opacity: 0; transition: opacity 0.2s; }
+        .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background-color: rgba(0, 0, 0, 0.85); color: white; padding: 12px 24px; border-radius: 30px; font-size: 16px; z-index: 3000; display: none; white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
 
-        /* FAB */
         .btn-float-search {
             position: fixed; bottom: 30px; right: 20px; width: 56px; height: 56px;
             border-radius: 50%; background: var(--primary); color: white;
@@ -158,6 +97,17 @@
         }
         .btn-float-search.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
         .btn-float-search:active { transform: scale(0.95); }
+
+        /* V3.2: 頂部下滑搜尋條 (替身) */
+        .top-search-bar {
+            position: fixed; top: 0; left: 0; width: 100%;
+            background: white; z-index: 1200;
+            padding: 10px 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex; gap: 10px; align-items: center;
+            transform: translateY(-100%); transition: transform 0.3s ease;
+            box-sizing: border-box;
+        }
+        .top-search-bar.show { transform: translateY(0); }
     </style>
 </head>
 <body>
@@ -196,7 +146,7 @@
 <div class="search-box">
     <input type="text" id="mainSearchInput" class="search-input" 
            inputmode="numeric" pattern="[0-9]*" enterkeyhint="search" autocomplete="off"
-           placeholder="🔍 輸入代號後幾碼..." oninput="filterList(this.value)">
+           placeholder="🔍 輸入代號後幾碼..." oninput="syncSearch(this.value)">
 </div>
 
 <div class="item-list" id="itemList">
@@ -205,7 +155,14 @@
     </div>
 </div>
 
-<button type="button" class="btn-float-search" id="fabSearch" onclick="focusMainSearch()">
+<div class="top-search-bar" id="topSearchBar">
+    <input type="text" id="topSearchInput" class="search-input" style="flex:1"
+           inputmode="numeric" pattern="[0-9]*" enterkeyhint="search" autocomplete="off"
+           placeholder="🔍 快速搜尋..." oninput="syncSearch(this.value)">
+    <button type="button" onclick="closeTopSearch()" style="border:none; background:none; font-size:20px; color:#666; padding:0 10px;">取消</button>
+</div>
+
+<button type="button" class="btn-float-search" id="fabSearch" onclick="openTopSearch()">
     🔍
 </button>
 
@@ -217,7 +174,6 @@
             <div class="modal-title" id="modalName">商品名稱</div>
             <span class="modal-code" id="modalCode">CODE123</span>
         </div>
-
         <div class="stats-grid">
             <div class="stat-box">
                 <span class="stat-label">應有</span>
@@ -232,11 +188,9 @@
                 <span class="stat-val val-rem" id="modalRem">0</span>
             </div>
         </div>
-
         <button type="button" class="btn-quick-correct" onclick="quickCorrect()">
             ⚡ 一鍵正確 (<span id="btnQuickQty"></span>個)
         </button>
-
         <div class="control-group">
             <button type="button" class="btn-circle" onclick="adjustQty(-1)">-</button>
             <input type="number" id="modalQty" class="qty-input-main" value="0" 
@@ -244,7 +198,6 @@
                    onclick="this.select()" oninput="syncInputToStats()">
             <button type="button" class="btn-circle" onclick="adjustQty(1)">+</button>
         </div>
-        
         <div class="modal-btns">
             <button type="button" class="btn-modal" style="background: #9ca3af;" onclick="closeModal()">取消</button>
             <button type="button" class="btn-modal" style="background: var(--primary);" onclick="saveQty()">儲存</button>
@@ -264,20 +217,30 @@
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const SYSTEM_COLUMNS = { code: ['產品代號'], name: ['產品名稱'], qty:  ['分倉存量'] };
 
-    // V3.1: 懸浮按鈕滾動監聽
     window.addEventListener('scroll', () => {
         const fab = document.getElementById('fabSearch');
         if (window.scrollY > 150) { fab.classList.add('show'); } 
         else { fab.classList.remove('show'); }
     });
 
-    // V3.1: 點擊 FAB 直接回到頂部並聚焦搜尋
-    function focusMainSearch() {
-        window.scrollTo(0, 0); // 直接跳到最頂端，確保看到搜尋框
-        setTimeout(() => {
-             const searchInput = document.getElementById('mainSearchInput');
-             searchInput.focus(); // 聚焦並彈出鍵盤
-        }, 100);
+    // V3.2: 搜尋功能優化
+    function syncSearch(val) {
+        document.getElementById('mainSearchInput').value = val;
+        document.getElementById('topSearchInput').value = val;
+        renderList(val);
+    }
+
+    function openTopSearch() {
+        const bar = document.getElementById('topSearchBar');
+        const input = document.getElementById('topSearchInput');
+        bar.classList.add('show');
+        setTimeout(() => input.focus(), 100);
+    }
+
+    function closeTopSearch() {
+        const bar = document.getElementById('topSearchBar');
+        bar.classList.remove('show');
+        document.getElementById('topSearchInput').blur(); // 收起鍵盤
     }
 
     function getValue(row, possibleNames) {
@@ -319,12 +282,10 @@
                 const sheet = workbook.Sheets[workbook.SheetNames[0]];
                 const json = XLSX.utils.sheet_to_json(sheet);
                 if (json.length === 0) { alert("❌ 空白檔案"); return; }
-                
                 const firstRow = json[0];
                 const hasCode = getValue(firstRow, SYSTEM_COLUMNS.code) !== null;
                 const hasName = getValue(firstRow, SYSTEM_COLUMNS.name) !== null;
                 if (!hasCode && !hasName) { alert("❌ 格式錯誤"); input.value = ''; return; }
-                
                 inventoryData = json.map(row => {
                     const rawCode = getValue(row, SYSTEM_COLUMNS.code);
                     const rawName = getValue(row, SYSTEM_COLUMNS.name);
@@ -346,42 +307,34 @@
     function renderList(filterText = '') {
         const container = document.getElementById('itemList');
         container.innerHTML = '';
-
         if (inventoryData.length === 0) {
              container.innerHTML = `<div style="text-align:center; color:#999; padding: 40px 20px;">請點擊右上方「📄匯入」載入 Excel</div>`;
              return;
         }
-        
         let filtered = inventoryData.filter(item => 
             item.code.toLowerCase().includes(filterText.toLowerCase()) || 
             item.name.toLowerCase().includes(filterText.toLowerCase())
         );
-
         if (filterMode === 'unfinished') {
             filtered = filtered.filter(item => !(item.counted && item.actQty === item.sysQty));
         }
-
         if (filtered.length === 0) {
             container.innerHTML = `<div style="text-align:center; color:#999; padding: 20px;">無符合項目</div>`;
             return;
         }
-
         filtered.forEach((item) => {
             const realIndex = inventoryData.indexOf(item);
             let statusClass = 'todo';
             const remaining = item.sysQty - item.actQty;
             let remColor = 'var(--danger)';
-            
             if (item.counted) {
                 if (remaining === 0) { statusClass = 'done'; remColor = 'var(--success)'; }
                 else if (remaining < 0) { statusClass = 'over'; remColor = 'var(--blue)'; }
                 else { statusClass = 'error'; }
             }
-
             const div = document.createElement('div');
             div.className = `item-card ${statusClass}`;
             div.onclick = () => openEditModal(realIndex);
-            
             div.innerHTML = `
                 <div class="item-info">
                     <h3>${item.name}</h3>
@@ -414,15 +367,12 @@
         if(isScanning && html5QrCode) html5QrCode.pause();
         currentEditIndex = index;
         const item = inventoryData[index];
-        
         document.getElementById('modalName').innerText = item.name;
         document.getElementById('modalCode').innerText = item.code;
         document.getElementById('modalSys').innerText = item.sysQty;
         document.getElementById('btnQuickQty').innerText = item.sysQty;
-
         const currentAct = item.counted ? item.actQty : 0;
         document.getElementById('modalQty').value = currentAct;
-        
         syncInputToStats(); 
         document.getElementById('editModal').style.display = 'flex';
     }
@@ -431,13 +381,10 @@
         if (currentEditIndex === -1) return;
         const item = inventoryData[currentEditIndex];
         const currentInput = Number(document.getElementById('modalQty').value);
-        
         document.getElementById('modalAct').innerText = currentInput;
-        
         const rem = item.sysQty - currentInput;
         const remEl = document.getElementById('modalRem');
         remEl.innerText = rem;
-        
         remEl.className = 'stat-val val-rem'; 
         if(rem === 0) remEl.classList.add('ok');
         else if (rem < 0) remEl.classList.add('over');
@@ -464,13 +411,11 @@
         const qty = Number(document.getElementById('modalQty').value);
         inventoryData[currentEditIndex].actQty = qty;
         inventoryData[currentEditIndex].counted = true;
-        
         if (document.activeElement) { document.activeElement.blur(); }
-        
         closeModal();
-        
-        // 儲存後清空搜尋
+        closeTopSearch(); // 儲存時也收起上方搜尋條
         document.getElementById('mainSearchInput').value = '';
+        document.getElementById('topSearchInput').value = '';
         renderList(''); 
     }
 
@@ -506,7 +451,6 @@
         if (decodedText === lastScannedCode && now - lastScanTime < 1000) return;
         lastScannedCode = decodedText;
         lastScanTime = now;
-
         const item = inventoryData.find(i => i.code === decodedText);
         if (item) {
             item.actQty++;
