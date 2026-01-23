@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>盤點小工具 V2.3</title>
+    <title>盤點小工具 V2.5</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
     
@@ -33,7 +33,7 @@
         .header { 
             background: var(--primary); 
             color: white; 
-            padding: 10px 15px; 
+            padding: 20px 15px; 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
@@ -56,13 +56,14 @@
             display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
         }
         .mini-stat {
-            background: white; padding: 8px; border-radius: 6px;
+            background: white; padding: 12px 10px; 
+            border-radius: 6px;
             display: flex; justify-content: space-between; align-items: center;
             border: 1px solid #e5e7eb; cursor: pointer;
         }
         .mini-stat.active { border-color: var(--primary); background: #e0f2f1; }
-        .mini-stat-label { font-size: 13px; color: #666; }
-        .mini-stat-val { font-size: 18px; font-weight: bold; }
+        .mini-stat-label { font-size: 14px; color: #666; } 
+        .mini-stat-val { font-size: 20px; font-weight: bold; } 
 
         /* Scan & Search */
         .scan-section { padding: 0 15px; margin-top: 10px; }
@@ -74,10 +75,26 @@
         }
         .btn-scan.active { background: var(--danger); }
         
+        /* V2.5 修正：限制掃描框高度，避免暈眩 */
+        #reader { 
+            width: 100%; 
+            height: 250px; /* 固定高度 */
+            margin-bottom: 0; 
+            display: none; 
+            background: black; 
+            border-radius: 0 0 8px 8px; 
+            overflow: hidden; /* 隱藏超出的影像 */
+            position: relative;
+        }
+        /* 強制 video 填滿但不變形 */
+        #reader video {
+            object-fit: cover;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
         .search-box { padding: 10px 15px; }
         .search-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
-
-        #reader { width: 100%; margin-bottom: 0; display: none; background: black; border-radius: 0 0 8px 8px; }
 
         /* List Styling */
         .item-list { padding: 0 15px; }
@@ -96,9 +113,9 @@
         
         .item-count { text-align: right; display: flex; flex-direction: column; align-items: flex-end; }
         .diff-badge { font-size: 20px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
-        .sub-count { font-size: 12px; color: #888; background: #f0f0f0; padding: 2px 6px; border-radius: 4px; }
+        .sub-count { font-size: 14px; color: #777; background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-weight: 500; }
 
-        /* V2.3 Modal Styling (修正版) */
+        /* Modal Styling */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; justify-content: center; align-items: flex-end; }
         .modal { background: white; width: 100%; border-radius: 16px 16px 0 0; padding: 20px; box-sizing: border-box; padding-bottom: 40px; }
         
@@ -106,7 +123,6 @@
         .modal-title { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
         .modal-code { font-family: monospace; color: #666; font-size: 14px; background: #f3f4f6; padding: 2px 6px; border-radius: 4px; }
         
-        /* 數據三欄佈局 (文字左，數字右，無背景色) */
         .stats-grid { 
             display: grid; 
             grid-template-columns: 1fr 1fr 1fr; 
@@ -114,32 +130,34 @@
             margin-bottom: 15px; 
         }
         .stat-box { 
-            background: white; /* 純白背景 */
-            padding: 8px 6px; /* 稍微縮小內距以防換行 */
+            background: white; 
+            padding: 8px 6px; 
             border-radius: 6px; 
-            border: 1px solid #e5e7eb; /* 細邊框 */
+            border: 1px solid #e5e7eb; 
             display: flex; 
-            justify-content: space-between; /* 左右撐開 */
+            justify-content: space-between; 
             align-items: center;
         }
         .stat-label { font-size: 12px; color: #666; font-weight: 500; }
-        .stat-val { font-size: 16px; font-weight: bold; color: #333; } /* 預設黑色 */
+        .stat-val { font-size: 16px; font-weight: bold; color: #333; } 
         
-        /* 狀態顏色 (只用在未盤) */
         .val-rem.ok { color: var(--success); }
         .val-rem.ng { color: var(--danger); }
         .val-rem.over { color: var(--blue); }
 
-        /* 快速修正按鈕 */
         .btn-quick-correct { width: 100%; padding: 10px; background: var(--warning); color: white; border: none; border-radius: 8px; font-weight: bold; margin-bottom: 20px; font-size: 15px; cursor: pointer; }
 
-        /* Control Group (縮小版) */
         .control-group { display: flex; gap: 8px; align-items: center; justify-content: center; margin-bottom: 10px; }
+        
         .btn-circle { 
             width: 40px; height: 40px; border-radius: 50%; border: none; 
-            font-size: 20px; font-weight: bold; cursor: pointer;
+            font-size: 22px; 
+            font-weight: bold; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
             background: #eee; color: #333;
+            padding: 0; 
+            padding-bottom: 3px; 
+            line-height: 1; 
         }
         .qty-input-main { 
             width: 80px; height: 40px; 
@@ -164,7 +182,7 @@
 <div id="flashOverlay" class="flash-overlay"></div>
 
 <div class="header">
-    <h1>📦 盤點 V2.3</h1>
+    <h1>📦 盤點 V2.5</h1>
     <div class="header-tools">
         <label class="btn-tool btn-file-wrapper">
             📄 匯入
@@ -435,7 +453,16 @@
         inventoryData[currentEditIndex].actQty = qty;
         inventoryData[currentEditIndex].counted = true;
         closeModal();
-        renderList(document.querySelector('.search-input').value);
+        
+        // V2.5 修正：儲存後自動清空搜尋框，並重置列表
+        const searchInput = document.querySelector('.search-input');
+        if (searchInput.value !== '') {
+            searchInput.value = '';
+            renderList(''); // 傳入空字串代表顯示全部
+        } else {
+            // 如果原本就沒搜尋，就單純更新畫面
+            renderList('');
+        }
     }
 
     function closeModal() {
