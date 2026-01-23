@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>盤點小工具 V3.0</title>
+    <title>盤點小工具 V3.1</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
     <link rel="manifest" href="manifest.json">
@@ -27,12 +27,11 @@
             color: var(--text); 
             padding-bottom: 80px;
             padding-top: env(safe-area-inset-top); 
-            touch-action: manipulation; /* 禁止雙擊縮放 */
-            -webkit-tap-highlight-color: transparent; /* 移除 Android 點擊藍框 */
-            user-select: none; /* 禁止長按選取文字 */
+            touch-action: manipulation; 
+            -webkit-tap-highlight-color: transparent; 
+            user-select: none; 
         }
         
-        /* 允許輸入框文字被選取 */
         input { user-select: text; }
 
         /* Header */
@@ -43,7 +42,6 @@
         .header h1 { margin: 0; font-size: 18px; font-weight: 700; }
         .header-tools { display: flex; gap: 10px; }
         
-        /* Buttons & Tools */
         .btn-tool { 
             background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); 
             color: white; padding: 5px 10px; border-radius: 6px; font-size: 12px; 
@@ -91,7 +89,7 @@
         .search-box { padding: 10px 15px; }
         .search-input { 
             width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; 
-            -webkit-appearance: none; /* iOS 扁平化 */
+            -webkit-appearance: none; 
         }
 
         /* List Styling */
@@ -149,7 +147,7 @@
             white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
         }
 
-        /* Floating Search Button */
+        /* FAB */
         .btn-float-search {
             position: fixed; bottom: 30px; right: 20px; width: 56px; height: 56px;
             border-radius: 50%; background: var(--primary); color: white;
@@ -160,19 +158,6 @@
         }
         .btn-float-search.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
         .btn-float-search:active { transform: scale(0.95); }
-
-        /* Search Overlay */
-        .search-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); z-index: 1100;
-            display: none; flex-direction: column; padding: 20px; box-sizing: border-box;
-            backdrop-filter: blur(5px);
-        }
-        .search-wrapper-float {
-            background: white; padding: 15px; border-radius: 12px; width: 100%; box-sizing: border-box;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2); animation: slideDown 0.3s ease;
-        }
-        @keyframes slideDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
 <body>
@@ -211,7 +196,7 @@
 <div class="search-box">
     <input type="text" id="mainSearchInput" class="search-input" 
            inputmode="numeric" pattern="[0-9]*" enterkeyhint="search" autocomplete="off"
-           placeholder="🔍 輸入代號後幾碼..." oninput="syncSearch(this.value)">
+           placeholder="🔍 輸入代號後幾碼..." oninput="filterList(this.value)">
 </div>
 
 <div class="item-list" id="itemList">
@@ -220,21 +205,9 @@
     </div>
 </div>
 
-<button type="button" class="btn-float-search" id="fabSearch" onclick="openSearchOverlay()">
+<button type="button" class="btn-float-search" id="fabSearch" onclick="focusMainSearch()">
     🔍
 </button>
-
-<div class="search-overlay" id="searchOverlay" onclick="closeSearchOverlay(event)">
-    <div class="search-wrapper-float" onclick="event.stopPropagation()">
-        <div style="display:flex; justify-content:space-between; margin-bottom:10px; align-items:center;">
-            <h3 style="margin:0; font-size:16px;">快速搜尋</h3>
-            <button type="button" onclick="closeSearchOverlay()" style="border:none; background:none; font-size:24px; color:#666;">&times;</button>
-        </div>
-        <input type="text" id="floatSearchInput" class="search-input" 
-               inputmode="numeric" pattern="[0-9]*" enterkeyhint="done" autocomplete="off"
-               placeholder="🔍 輸入代號..." oninput="syncSearch(this.value)">
-    </div>
-</div>
 
 <div id="toast" class="toast"></div>
 
@@ -288,44 +261,30 @@
     let currentEditIndex = -1;
     let filterMode = 'all';
 
-    // 音效初始化
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const SYSTEM_COLUMNS = { code: ['產品代號'], name: ['產品名稱'], qty:  ['分倉存量'] };
 
-    // 監聽滾動：顯示/隱藏懸浮按鈕
+    // V3.1: 懸浮按鈕滾動監聽
     window.addEventListener('scroll', () => {
         const fab = document.getElementById('fabSearch');
         if (window.scrollY > 150) { fab.classList.add('show'); } 
         else { fab.classList.remove('show'); }
     });
 
-    // 搜尋同步與過濾
-    function syncSearch(val) {
-        document.getElementById('mainSearchInput').value = val;
-        document.getElementById('floatSearchInput').value = val;
-        renderList(val);
+    // V3.1: 點擊 FAB 直接回到頂部並聚焦搜尋
+    function focusMainSearch() {
+        window.scrollTo(0, 0); // 直接跳到最頂端，確保看到搜尋框
+        setTimeout(() => {
+             const searchInput = document.getElementById('mainSearchInput');
+             searchInput.focus(); // 聚焦並彈出鍵盤
+        }, 100);
     }
 
-    function openSearchOverlay() {
-        const overlay = document.getElementById('searchOverlay');
-        const floatInput = document.getElementById('floatSearchInput');
-        overlay.style.display = 'flex';
-        // 延遲聚焦確保鍵盤彈出
-        setTimeout(() => floatInput.focus(), 100);
-    }
-
-    function closeSearchOverlay(e) {
-        if (e && e.target !== e.currentTarget && e.target.tagName !== 'BUTTON') return;
-        document.getElementById('searchOverlay').style.display = 'none';
-    }
-
-    // 資料讀取工具
     function getValue(row, possibleNames) {
         for (let name of possibleNames) { if (row[name] !== undefined) return row[name]; }
         return null;
     }
 
-    // 音效播放
     function playBeep(type) {
         if (audioCtx.state === 'suspended') audioCtx.resume();
         const oscillator = audioCtx.createOscillator();
@@ -343,14 +302,12 @@
         }
     }
 
-    // 視覺閃爍
     function triggerFlash(color) {
         const overlay = document.getElementById('flashOverlay');
         overlay.style.backgroundColor = color === 'success' ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)';
         overlay.style.opacity = 1; setTimeout(() => { overlay.style.opacity = 0; }, 300);
     }
 
-    // 檔案處理
     function handleFile(input) {
         const file = input.files[0];
         if (!file) return;
@@ -366,7 +323,7 @@
                 const firstRow = json[0];
                 const hasCode = getValue(firstRow, SYSTEM_COLUMNS.code) !== null;
                 const hasName = getValue(firstRow, SYSTEM_COLUMNS.name) !== null;
-                if (!hasCode && !hasName) { alert("❌ 盤點表格式錯誤"); input.value = ''; return; }
+                if (!hasCode && !hasName) { alert("❌ 格式錯誤"); input.value = ''; return; }
                 
                 inventoryData = json.map(row => {
                     const rawCode = getValue(row, SYSTEM_COLUMNS.code);
@@ -386,7 +343,6 @@
         reader.readAsArrayBuffer(file); input.value = ''; 
     }
 
-    // 列表渲染
     function renderList(filterText = '') {
         const container = document.getElementById('itemList');
         container.innerHTML = '';
@@ -454,7 +410,6 @@
         renderList(document.getElementById('mainSearchInput').value);
     }
 
-    // Modal 控制
     function openEditModal(index) {
         if(isScanning && html5QrCode) html5QrCode.pause();
         currentEditIndex = index;
@@ -510,15 +465,12 @@
         inventoryData[currentEditIndex].actQty = qty;
         inventoryData[currentEditIndex].counted = true;
         
-        // Android 優化：強制收起鍵盤
         if (document.activeElement) { document.activeElement.blur(); }
         
         closeModal();
-        closeSearchOverlay(); 
         
         // 儲存後清空搜尋
         document.getElementById('mainSearchInput').value = '';
-        document.getElementById('floatSearchInput').value = '';
         renderList(''); 
     }
 
@@ -528,12 +480,10 @@
         if(isScanning && html5QrCode) html5QrCode.resume();
     }
 
-    // 掃描功能
     async function toggleScanner() {
         const btn = document.getElementById('scanBtn');
         const readerDiv = document.getElementById('reader');
         if (isScanning) {
-            // 安全停止，防止 Android 相機崩潰
             try { if (html5QrCode) { await html5QrCode.stop(); html5QrCode.clear(); } } catch(e) {}
             readerDiv.style.display = 'none';
             btn.classList.remove('active');
