@@ -50,6 +50,17 @@
             display: flex; justify-content: space-between; align-items: center; 
         }
         .header h1 { margin: 0; font-size: 18px; font-weight: 700; }
+        /* 版本號小標籤樣式 */
+        .version-badge {
+            font-size: 10px;           /* 字縮小 */
+            background: rgba(0,0,0,0.15); /* 深色半透明背景，在綠底上會很好看 */
+        padding: 2px 6px;          /* 膠囊的內距 */
+        border-radius: 12px;       /* 圓角 */
+        margin-left: 6px;          /* 離主標題遠一點點 */
+        vertical-align: middle;    /* 垂直置中 */
+        font-weight: 400;          /* 字不要太粗，與標題區隔 */
+        letter-spacing: 0.5px;     /* 字距微調 */
+        }
         .header-tools { display: flex; gap: 10px; }
         .btn-tool { 
             background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); 
@@ -523,6 +534,7 @@
 </script>
 </body>
 </html>
+
 
 
 
