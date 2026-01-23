@@ -190,7 +190,7 @@
 
                 // 修改點：更換錯誤訊息文字
                 if (!hasCode && !hasName) {
-                    alert("❌ 格式錯誤！系統找不到欄位。請確認是否選錯檔案？");
+                    alert("❌ 錯誤：格式不正確，請確認是否選錯檔案。");
                     input.value = ''; // 清空選擇
                     return; // 直接中斷
                 }
@@ -212,14 +212,14 @@
                 }).filter(item => item.code !== '');
 
                 if (inventoryData.length === 0) {
-                     alert("❌ 匯入失敗！雖然欄位名稱正確，但讀取不到任何有效商品資料。");
+                     alert("❌ 錯誤：讀取不到有效商品資料，請確認是否選錯檔案。");
                      return;
                 }
 
                 setFilterMode('all');
                 alert(`✅ 匯入成功！\n\n📄 檔名：${file.name}\n📅 檔案日期：${fileDate}\n📦 商品項目：${inventoryData.length} 筆`);
             } catch(err) {
-                alert("❌ 檔案讀取失敗，請確認這是否為有效的 Excel 檔。");
+                alert("❌ 錯誤：請確認這是否為有效的 Excel 檔。");
                 console.error(err);
             }
         };
@@ -406,5 +406,6 @@
 </script>
 </body>
 </html>
+
 
 
