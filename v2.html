@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>盤點小工具 V3.3</title>
+    <title>盤點小工具 V3.4</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
     <link rel="manifest" href="manifest.json">
@@ -23,18 +23,20 @@
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
             background: var(--bg); margin: 0; padding: 0; color: var(--text); 
-            /* V3.3: padding-top 需要預留給上方固定的三層結構 (Header + Stats + Search) */
-            padding-top: 180px; 
+            /* V3.4: 增加 padding-top，避免內容被上方固定的搜尋框擋住 */
+            padding-top: 200px; 
             padding-bottom: 80px; 
             touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; 
         }
         
         input { user-select: text; }
 
-        /* V3.3: 固定層容器 (Header + Stats) - 永遠不動 */
+        /* 固定層容器 (Header + Stats) */
         .fixed-top-group {
             position: fixed; top: 0; left: 0; width: 100%; z-index: 100;
             background: var(--bg);
+            /* V3.4: 確保高度足夠，不會跟搜尋框打架 */
+            height: 140px; 
         }
 
         .header { background: var(--primary); color: white; padding: 20px 15px; display: flex; justify-content: space-between; align-items: center; }
@@ -50,28 +52,42 @@
         .mini-stat-label { font-size: 14px; color: #666; } 
         .mini-stat-val { font-size: 20px; font-weight: bold; } 
 
-        /* V3.3: 搜尋框容器 - 可收折 */
+        /* V3.4: 搜尋框容器 - 位置修正 */
         .search-container {
             position: fixed; 
-            /* 它的位置在 fixed-top-group 下方 (約 125px) */
-            top: 125px; 
+            /* V3.4: 下移到 140px，避開上面的 Header */
+            top: 140px; 
             left: 0; width: 100%; 
-            z-index: 90; /* 比 header 低，這樣收折時會跑到 header 後面 */
+            z-index: 90; 
             background: var(--bg);
             padding: 10px 15px;
             box-sizing: border-box;
-            transition: transform 0.3s ease; /* 滑動動畫 */
+            transition: transform 0.3s ease; 
+            /* 加一點陰影區隔 */
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
         }
         
-        /* 收折狀態：往上移動 100% (藏到 header 後面) */
+        /* 收折狀態：往上移動 (藏到 header 後面) */
         .search-container.hidden {
             transform: translateY(-100%);
         }
 
-        .search-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; -webkit-appearance: none; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .search-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; -webkit-appearance: none; background: white; }
 
         .scan-section { padding: 0 15px; margin-top: 10px; }
-        .btn-scan { width: 100%; padding: 15px; background: var(--text); color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        
+        /* V3.4: 掃描按鈕修正 - 移除可能導致歪斜的樣式，回歸標準滿版 */
+        .btn-scan { 
+            width: 100%; 
+            padding: 15px; 
+            background: var(--text); color: white; 
+            border: none; border-radius: 8px; 
+            font-weight: bold; font-size: 18px; 
+            cursor: pointer; 
+            display: flex; align-items: center; justify-content: center; gap: 8px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+            margin-bottom: 20px; /* 下方留白 */
+        }
         .btn-scan.active { background: var(--danger); }
         
         #reader { width: 100%; height: 250px; margin-bottom: 15px; display: none; background: black; border-radius: 12px; overflow: hidden; position: relative; }
@@ -167,7 +183,7 @@
 
 <div class="scan-section">
     <div id="reader"></div>
-    <button type="button" class="btn-scan" id="scanBtn" onclick="toggleScanner()" style="margin: 20px 15px;">
+    <button type="button" class="btn-scan" id="scanBtn" onclick="toggleScanner()">
         📷 連續掃描模式
     </button>
 </div>
@@ -224,7 +240,7 @@
     let currentEditIndex = -1;
     let filterMode = 'all';
     
-    // V3.3: 搜尋框收折邏輯
+    // 搜尋框收折邏輯
     let lastScrollY = 0;
     const searchBar = document.getElementById('searchBar');
     const fabSearch = document.getElementById('fabSearch');
@@ -232,24 +248,21 @@
     window.addEventListener('scroll', () => {
         const currentScroll = window.scrollY;
         
-        // 往下滑超過 20px，且不在頂部 -> 隱藏搜尋框
+        // 往下滑超過 50px -> 隱藏搜尋框
         if (currentScroll > lastScrollY && currentScroll > 50) {
             searchBar.classList.add('hidden');
-            fabSearch.classList.add('show'); // 顯示放大鏡
+            fabSearch.classList.add('show'); 
         } else {
             // 往上滑 -> 顯示搜尋框
             searchBar.classList.remove('hidden');
-            fabSearch.classList.remove('show'); // 隱藏放大鏡
+            fabSearch.classList.remove('show'); 
         }
         lastScrollY = currentScroll;
     });
 
-    // 點擊放大鏡：召喚搜尋框
     function summonSearchBar() {
-        searchBar.classList.remove('hidden'); // 滑出來
-        fabSearch.classList.remove('show'); // 隱藏按鈕
-        
-        // 稍微延遲聚焦，等待動畫
+        searchBar.classList.remove('hidden'); 
+        fabSearch.classList.remove('show'); 
         setTimeout(() => {
             document.getElementById('mainSearchInput').focus();
         }, 300);
