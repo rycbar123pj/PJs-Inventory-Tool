@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>盤點小工具 v2.0.5</title>
+    <title>盤點小工具 v2.0.6</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
     <link rel="manifest" href="manifest.json">
@@ -30,11 +30,10 @@
         
         input { user-select: text; }
 
-        /* 固定區容器 - 含自動收折動畫 */
+        /* 固定區容器 - 移除動畫效果 */
         .fixed-group {
             position: fixed; top: 0; left: 0; width: 100%; z-index: 100;
             background: var(--bg);
-            transition: transform 0.3s ease;
         }
 
         /* 1. Header */
@@ -105,16 +104,16 @@
         .scan-section.show { display: block; }
         
         #reader { 
-            width: 100%; height: 270px; 
+            width: 96%; height: 270px; 
             background: black; border-radius: 12px; 
             overflow: hidden; position: relative; 
         }
         #reader video { object-fit: cover; width: 100% !important; height: 100% !important; border-radius: 12px; }
 
-        /* 懸浮按鈕 (SVG 版本 + 鎖定位置) */
+        /* 懸浮按鈕 (SVG 版本 + 鎖定位置 updated) */
         .btn-fab-scan {
             position: fixed !important; 
-            bottom: 36px !important;    
+            bottom: 36px !important;
             left: 30px !important;      
             
             width: 56px; height: 56px;
@@ -176,7 +175,7 @@
         
         .flash-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2000; opacity: 0; transition: opacity 0.2s; }
         
-        /* 👇 Toast 樣式 (字體 16px，位置在下方) */
+        /* 👇 Toast 樣式 */
         .toast { 
             position: fixed; 
             top: calc(170px + env(safe-area-inset-top) + 210px);
@@ -207,7 +206,7 @@
     <div class="header">
         <h1>
             📦 盤點小工具 
-            <span class="version-badge">v2.0.5</span>
+            <span class="version-badge">v2.0.6</span>
         </h1>
         <div class="header-tools">
             <label class="btn-tool btn-file-wrapper">
@@ -304,25 +303,7 @@
     let currentEditIndex = -1;
     let filterMode = 'all';
 
-    // 智能收折邏輯
-    let lastScrollY = 0;
-    document.addEventListener("DOMContentLoaded", () => {
-        const fixedGroup = document.querySelector('.fixed-group');
-        const header = document.querySelector('.header');
-
-        window.addEventListener('scroll', () => {
-            const currentScroll = window.scrollY;
-            if (header && fixedGroup) {
-                const headerHeight = header.offsetHeight;
-                if (currentScroll > lastScrollY && currentScroll > 50) {
-                    fixedGroup.style.transform = `translateY(-${headerHeight}px)`;
-                } else {
-                    fixedGroup.style.transform = 'translateY(0)';
-                }
-                lastScrollY = currentScroll;
-            }
-        });
-    });
+    // 🔴 自動收折邏輯已移除
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const SYSTEM_COLUMNS = { code: ['產品代號'], name: ['產品名稱'], qty:  ['分倉存量'] };
@@ -475,6 +456,10 @@
         const currentAct = item.counted ? item.actQty : 0;
         document.getElementById('modalQty').value = currentAct;
         syncInputToStats(); 
+        
+        // 👇 這裡新增：開啟卡片時隱藏懸浮按鈕
+        document.getElementById('fabScan').style.display = 'none';
+        
         document.getElementById('editModal').style.display = 'flex';
     }
 
@@ -522,6 +507,10 @@
 
     function closeModal() {
         document.getElementById('editModal').style.display = 'none';
+        
+        // 👇 這裡新增：關閉卡片時恢復懸浮按鈕
+        document.getElementById('fabScan').style.display = 'flex';
+        
         currentEditIndex = -1;
         if(isScanning && html5QrCode) html5QrCode.resume();
     }
@@ -574,7 +563,6 @@
             playBeep('success');
             triggerFlash('success');
             
-            // 👇 修改這裡：格式 【編號】+1 (已盤XX/應有XX)
             showToast(`【${item.code}】+1 (${item.actQty}/${item.sysQty})`);
             
             updateStats();
