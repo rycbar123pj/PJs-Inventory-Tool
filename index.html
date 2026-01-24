@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>盤點小工具 v2.0.1</title>
+    <title>盤點小工具 v2.0.2</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
     <link rel="manifest" href="manifest.json">
@@ -31,10 +31,11 @@
         
         input { user-select: text; }
 
-        /* 固定區容器 */
+        /* 固定區容器 - 新增過渡動畫 */
         .fixed-group {
             position: fixed; top: 0; left: 0; width: 100%; z-index: 100;
             background: var(--bg);
+            transition: transform 0.3s ease; /* 👈 新增這行：讓收折變滑順 */
         }
 
         /* 1. Header (包含瀏海修正與版本號樣式) */
@@ -57,6 +58,7 @@
             padding: 2px 6px;
             border-radius: 12px;
             margin-left: 6px;
+            margin-top: 1px;
             font-weight: 400;
             letter-spacing: 0.5px;
             color: rgba(255,255,255,0.9);
@@ -114,8 +116,8 @@
         /* 懸浮按鈕 (強制鎖定 + 修正圖示位置) */
         .btn-fab-scan {
             position: fixed !important; 
-            bottom: 60px !important;    
-            left: 24px !important;      
+            bottom: 36px !important;    
+            left: 30px !important;      
             
             width: 56px; height: 56px;
             border-radius: 50%; 
@@ -140,7 +142,7 @@
             background: var(--danger); 
             /* 停止按鈕置中修正 */
             padding-bottom: 0; 
-            padding-top: 1px; 
+            padding-top: 2px; 
         }
         
         .btn-fab-scan:active { transform: scale(0.95); }
@@ -201,7 +203,7 @@
     <div class="header">
         <h1>
             📦 盤點小工具 
-            <span class="version-badge">v2.0.1</span>
+            <span class="version-badge">v2.0.2</span>
         </h1>
         <div class="header-tools">
             <label class="btn-tool btn-file-wrapper">
@@ -291,6 +293,34 @@
     let lastScanTime = 0;
     let currentEditIndex = -1;
     let filterMode = 'all';
+
+    // 🔴 智能收折邏輯 (新增部分) 🔴
+    let lastScrollY = 0;
+    
+    // 等 DOM 載入後執行
+    document.addEventListener("DOMContentLoaded", () => {
+        const fixedGroup = document.querySelector('.fixed-group');
+        const header = document.querySelector('.header');
+
+        window.addEventListener('scroll', () => {
+            const currentScroll = window.scrollY;
+            
+            // 如果 header 元素存在
+            if (header && fixedGroup) {
+                // 取得 Header 目前的實際高度 (含瀏海 padding)
+                const headerHeight = header.offsetHeight;
+
+                // 往下捲動超過 50px 且 超過上次位置 -> 把整個固定區往上移
+                if (currentScroll > lastScrollY && currentScroll > 50) {
+                    fixedGroup.style.transform = `translateY(-${headerHeight}px)`;
+                } else {
+                    // 往上捲動 -> 恢復原位
+                    fixedGroup.style.transform = 'translateY(0)';
+                }
+                lastScrollY = currentScroll;
+            }
+        });
+    });
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const SYSTEM_COLUMNS = { code: ['產品代號'], name: ['產品名稱'], qty:  ['分倉存量'] };
@@ -539,4 +569,3 @@
 </script>
 </body>
 </html>
-
