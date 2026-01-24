@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>盤點小工具 V4.4</title>
+    <title>盤點小工具 v2.0.2 (Exp)</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
     <link rel="manifest" href="manifest.json">
@@ -23,26 +23,45 @@
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
             background: var(--bg); margin: 0; padding: 0; color: var(--text); 
-            /* 固定區預留高度 */
-            padding-top: 170px; 
+            padding-top: calc(170px + env(safe-area-inset-top)); 
             padding-bottom: 80px; 
             touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; 
         }
         
         input { user-select: text; }
 
-        /* 頂部固定組合包 */
+        /* 固定區容器 - 含自動收折動畫 */
         .fixed-group {
             position: fixed; top: 0; left: 0; width: 100%; z-index: 100;
             background: var(--bg);
+            transition: transform 0.3s ease;
         }
 
         /* 1. Header */
         .header { 
-            background: var(--primary); color: white; padding: 15px; 
+            background: var(--primary); color: white; 
+            padding: 15px;
+            padding-top: calc(15px + env(safe-area-inset-top));
             display: flex; justify-content: space-between; align-items: center; 
         }
-        .header h1 { margin: 0; font-size: 18px; font-weight: 700; }
+        .header h1 { 
+            margin: 0; font-size: 18px; font-weight: 700; 
+            display: flex; align-items: center; 
+        }
+        
+        /* 版本號樣式 */
+        .version-badge {
+            font-size: 10px;
+            background: rgba(0,0,0,0.2);
+            padding: 2px 6px;
+            border-radius: 12px;
+            margin-left: 6px;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            color: rgba(255,255,255,0.9);
+            margin-top: 4px; /* 微調位置 */
+        }
+
         .header-tools { display: flex; gap: 10px; }
         .btn-tool { 
             background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); 
@@ -92,43 +111,36 @@
         }
         #reader video { object-fit: cover; width: 100% !important; height: 100% !important; border-radius: 12px; }
 
-        /* V4.3: 懸浮按鈕 - 位置上移 + 純 Flex 置中 */
-        /* 1. 這是給「相機 📷」用的設定 (您剛剛調好的狀態) */
-    .btn-fab-scan {
-        position: fixed; 
-        bottom: 60px; 
-        left: 24px; 
-        width: 56px; height: 56px;
-        border-radius: 50%; 
-        background: var(--text); 
-        color: white;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3); 
-        border: none;
-    
-        display: flex; 
-        align-items: center; 
-        justify-content: center;
-        font-size: 26px; 
-        z-index: 900; 
-        transition: transform 0.1s;
-    
-        /* 👇 這裡保留您剛剛調好的相機數值 */
-        padding-bottom: 10px; 
-        line-height: 1;
-    }
+        /* 懸浮按鈕 (SVG 版本) */
+        .btn-fab-scan {
+            position: fixed !important; 
+            bottom: 60px !important;    
+            left: 24px !important;      
+            
+            width: 56px; height: 56px;
+            border-radius: 50%; 
+            background: var(--text); 
+            color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3); 
+            border: none;
+            
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            z-index: 9999;
+            transition: transform 0.1s;
+            
+            /* 移除所有 padding 修正，讓 Flexbox 自動置中 */
+            padding: 0; 
+        }
 
-    /* 2. 這是專門給「停止 ⏹」用的設定 (紅色狀態) */
-    .btn-fab-scan.active { 
-        background: var(--danger); 
-    
-        /* 👇 因為停止按鈕飛太高，所以我們用 padding-top 把它壓下來 */
-        /* 這裡的數值您可以自己微調，通常 2px ~ 5px 很有感 */
-        padding-bottom: 0; /* 先歸零相機的設定 */
-        padding-top: 1px;  /* 往下壓 */
-    }
-       
+        .btn-fab-scan.active { 
+            background: var(--danger); 
+            padding: 0;
+        }
+        
         .btn-fab-scan:active { transform: scale(0.95); }
-        .btn-fab-scan.active { background: var(--danger); } 
+        .btn-fab-scan svg { display: block; } /* 確保 SVG 不會亂跑 */
 
         /* List Styling */
         .item-list { padding: 0 15px; }
@@ -143,7 +155,7 @@
         .diff-badge { font-size: 20px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
         .sub-count { font-size: 12px; color: #777; background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-weight: 500; }
 
-        /* Modal */
+        /* Modal & Toast */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; justify-content: center; align-items: flex-end; }
         .modal { background: white; width: 100%; border-radius: 16px 16px 0 0; padding: 20px; box-sizing: border-box; padding-bottom: 40px; }
         .modal-header { border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
@@ -165,7 +177,6 @@
         
         .flash-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2000; opacity: 0; transition: opacity 0.2s; }
         
-        /* Toast 置中 */
         .toast { 
             position: fixed; bottom: 100px; 
             left: 50%; transform: translateX(-50%); 
@@ -175,8 +186,7 @@
             white-space: nowrap; 
             box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
             text-align: center;
-            width: fit-content; 
-            max-width: 90%;
+            width: fit-content; max-width: 90%;
         }
     </style>
 </head>
@@ -186,7 +196,10 @@
 
 <div class="fixed-group">
     <div class="header">
-        <h1>📦 盤點小工具</h1>
+        <h1>
+            📦 盤點小工具 
+            <span class="version-badge">v2.0.2</span>
+        </h1>
         <div class="header-tools">
             <label class="btn-tool btn-file-wrapper">
                 📄 匯入
@@ -225,7 +238,13 @@
 </div>
 
 <button type="button" class="btn-fab-scan" id="fabScan" onclick="toggleScanner()">
-    📷
+    <svg id="iconCamera" width="30" height="30" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M4,7 C2.895,7 2,7.895 2,9 L2,19 C2,20.105 2.895,21 4,21 L20,21 C21.105,21 22,20.105 22,19 L22,9 C22,7.895 21.105,7 20,7 L17,7 L15.586,4.172 C15.211,3.422 14.445,3 13.606,3 L10.394,3 C9.555,3 8.789,3.422 8.414,4.172 L7,7 L4,7 Z M12,18 C9.239,18 7,15.761 7,13 C7,10.239 9.239,8 12,8 C14.761,8 17,10.239 17,13 C17,15.761 14.761,18 12,18 Z"></path>
+    </svg>
+    
+    <svg id="iconStop" style="display:none" width="30" height="30" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M5,3 C3.895,3 3,3.895 3,5 L3,19 C3,20.105 3.895,21 5,21 L19,21 C20.105,21 21,20.105 21,19 L21,5 C21,3.895 20.105,3 19,3 L5,3 Z M15.707,8.293 C16.098,8.684 16.098,9.316 15.707,9.707 L13.414,12 L15.707,14.293 C16.098,14.684 16.098,15.316 15.707,15.707 C15.316,16.098 14.684,16.098 14.293,15.707 L12,13.414 L9.707,15.707 C9.316,16.098 8.684,16.098 8.293,15.707 C7.902,15.316 7.902,14.684 8.293,14.293 L10.586,12 L8.293,9.707 C7.902,9.316 7.902,8.684 8.293,8.293 C8.684,7.902 9.316,7.902 9.707,8.293 L12,10.586 L14.293,8.293 C14.684,7.902 15.316,7.902 15.707,8.293 Z"></path>
+    </svg>
 </button>
 
 <div id="toast" class="toast"></div>
@@ -275,6 +294,26 @@
     let lastScanTime = 0;
     let currentEditIndex = -1;
     let filterMode = 'all';
+
+    // 🔴 智能收折邏輯
+    let lastScrollY = 0;
+    document.addEventListener("DOMContentLoaded", () => {
+        const fixedGroup = document.querySelector('.fixed-group');
+        const header = document.querySelector('.header');
+
+        window.addEventListener('scroll', () => {
+            const currentScroll = window.scrollY;
+            if (header && fixedGroup) {
+                const headerHeight = header.offsetHeight;
+                if (currentScroll > lastScrollY && currentScroll > 50) {
+                    fixedGroup.style.transform = `translateY(-${headerHeight}px)`;
+                } else {
+                    fixedGroup.style.transform = 'translateY(0)';
+                }
+                lastScrollY = currentScroll;
+            }
+        });
+    });
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const SYSTEM_COLUMNS = { code: ['產品代號'], name: ['產品名稱'], qty:  ['分倉存量'] };
@@ -378,7 +417,7 @@
                 </div>
                 <div class="item-count">
                     <span class="diff-badge" style="color:${remColor}">${remaining}</span>
-                    <span class="sub-count">已 ${item.actQty} / 總 ${item.sysQty}</span>
+                    <span class="sub-count">已 ${item.actQty} / 應 ${item.sysQty}</span>
                 </div>`;
             container.appendChild(div);
         });
@@ -463,8 +502,12 @@
         if(isScanning && html5QrCode) html5QrCode.resume();
     }
 
+    // 👇 這裡大幅修改：控制 SVG 圖示的顯示與隱藏
     async function toggleScanner() {
         const btn = document.getElementById('fabScan');
+        const iconCamera = document.getElementById('iconCamera'); // 相機圖示
+        const iconStop = document.getElementById('iconStop');     // 停止圖示
+        
         const readerDiv = document.getElementById('reader');
         const section = document.getElementById('scanSection');
         
@@ -473,13 +516,21 @@
             section.classList.remove('show');
             readerDiv.style.display = 'none';
             btn.classList.remove('active');
-            btn.innerHTML = '📷'; 
+            
+            // 👇 切換圖示：顯示相機，隱藏停止
+            iconCamera.style.display = 'block';
+            iconStop.style.display = 'none';
+            
             isScanning = false;
         } else {
             section.classList.add('show');
             readerDiv.style.display = 'block';
             btn.classList.add('active');
-            btn.innerHTML = '⏹'; 
+            
+            // 👇 切換圖示：隱藏相機，顯示停止
+            iconCamera.style.display = 'none';
+            iconStop.style.display = 'block';
+            
             html5QrCode = new Html5Qrcode("reader");
             const config = { fps: 10, qrbox: { width: 250, height: 150 } };
             if (audioCtx.state === 'suspended') audioCtx.resume();
