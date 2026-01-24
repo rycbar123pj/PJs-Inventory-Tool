@@ -105,7 +105,7 @@
         .scan-section.show { display: block; }
         
         #reader { 
-            width: 100%; height: 250px; 
+            width: 100%; height: 280px; 
             background: black; border-radius: 12px; 
             overflow: hidden; position: relative; 
         }
@@ -180,7 +180,7 @@
         .toast { 
             position: fixed; 
             /* 計算方式：瀏海(env) + Header固定區(170px) + 往下的距離(210px) = 落在相機畫面下方 */
-            top: calc(170px + env(safe-area-inset-top) + 210px);
+            top: calc(170px + env(safe-area-inset-top) + 230px);
             left: 50%; 
             transform: translateX(-50%); 
             
@@ -562,7 +562,7 @@
             iconStop.style.display = 'block';
             
             html5QrCode = new Html5Qrcode("reader");
-            const config = { fps: 10, qrbox: { width: 250, height: 150 } };
+            const config = { fps: 10, qrbox: { width: 250, height: 130 } };
             if (audioCtx.state === 'suspended') audioCtx.resume();
             html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess);
             isScanning = true;
