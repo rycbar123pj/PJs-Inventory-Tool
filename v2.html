@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>盤點小工具 v2.1.1</title>
+    <title>盤點小工具 v2.1.3</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
     <link rel="manifest" href="manifest.json">
@@ -20,22 +20,17 @@
     <style>
         :root { --primary: #0ABAB5; --success: #22c55e; --warning: #f59e0b; --danger: #ef4444; --blue: #3b82f6; --bg: #f3f4f6; --card: #ffffff; --text: #1f2937; }
         
-        /* 基礎設定：強制滿版 */
-        html, body {
-            height: 100%;
-            margin: 0; padding: 0;
-            background: var(--bg);
-            color: var(--text);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            touch-action: manipulation; 
-            -webkit-tap-highlight-color: transparent; 
-            user-select: none; 
-        }
-
         body { 
-            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background: var(--bg); margin: 0; padding: 0; color: var(--text); 
             padding-top: calc(170px + env(safe-area-inset-top)); 
             padding-bottom: 80px; 
+            
+            /* 👇 修正1：強制頁面高度撐滿，解決沒資料時按鈕上浮的問題 */
+            min-height: 100vh;
+            box-sizing: border-box;
+            
+            touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; 
         }
         
         input { user-select: text; }
@@ -120,10 +115,10 @@
         }
         #reader video { object-fit: cover; width: 100% !important; height: 100% !important; border-radius: 12px; }
 
-        /* 懸浮按鈕 (SVG 版本 + 鎖定位置) */
+        /* 懸浮按鈕 */
         .btn-fab-scan {
             position: fixed !important; 
-            bottom: 40px !important;    
+            bottom: 36px !important;    
             left: 30px !important;      
             
             width: 56px; height: 56px;
@@ -137,7 +132,9 @@
             align-items: center; 
             justify-content: center;
             z-index: 9999;
-            transition: transform 0.1s;
+            
+            /* 👇 修正2：加入這行，鎖定按鈕位置防止抖動 */
+            transform: translateZ(0);
             
             padding: 0; 
         }
@@ -191,6 +188,7 @@
             top: calc(170px + env(safe-area-inset-top) + 210px);
             left: 50%; 
             transform: translateX(-50%); 
+            
             background-color: rgba(0, 0, 0, 0.85); 
             color: white; 
             padding: 12px 24px; 
@@ -215,7 +213,7 @@
     <div class="header">
         <h1>
             📦 盤點小工具 
-            <span class="version-badge">v2.1.1</span>
+            <span class="version-badge">v2.1.3</span>
         </h1>
         <div class="header-tools">
             <label class="btn-tool btn-file-wrapper">
@@ -311,6 +309,8 @@
     let lastScanTime = 0;
     let currentEditIndex = -1;
     let filterMode = 'all';
+
+    // 🔴 自動收折邏輯已移除
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const SYSTEM_COLUMNS = { code: ['產品代號'], name: ['產品名稱'], qty:  ['分倉存量'] };
@@ -459,6 +459,7 @@
         document.getElementById('modalQty').value = currentAct;
         syncInputToStats(); 
         
+        // 👇 這裡新增：開啟卡片時隱藏懸浮按鈕
         document.getElementById('fabScan').style.display = 'none';
         
         document.getElementById('editModal').style.display = 'flex';
@@ -508,12 +509,14 @@
 
     function closeModal() {
         document.getElementById('editModal').style.display = 'none';
+        
+        // 👇 這裡新增：關閉卡片時恢復懸浮按鈕
         document.getElementById('fabScan').style.display = 'flex';
+        
         currentEditIndex = -1;
         if(isScanning && html5QrCode) html5QrCode.resume();
     }
 
-    // 👇 修正後的相機啟動函式 (寬容模式)
     async function toggleScanner() {
         const btn = document.getElementById('fabScan');
         const iconCamera = document.getElementById('iconCamera');
@@ -542,30 +545,27 @@
             
             html5QrCode = new Html5Qrcode("reader");
             
-            // 👇 這裡的參數已放寬，只要求「理想值」而不強制「最小值」
+            // 👇👇👇 修正3：加入相機高清設定 👇👇👇
             const constraints = { 
                 facingMode: "environment",
-                width: { ideal: 1280, max: 1920 }, // 試著抓高清，但不行就算了
-                height: { ideal: 720, max: 1080 } 
+                width: { ideal: 1280 }, // 提升畫質
+                height: { ideal: 720 }
             };
 
             const config = { 
                 fps: 10, 
                 qrbox: { width: 250, height: 120 },
                 experimentalFeatures: {
-                    useBarCodeDetectorIfSupported: true
+                    useBarCodeDetectorIfSupported: true // 硬體加速
                 }
             };
             
             if (audioCtx.state === 'suspended') audioCtx.resume();
             
+            // 使用新設定啟動
             html5QrCode.start(constraints, config, onScanSuccess).catch(err => {
-                // 如果第一次失敗，嘗試用最基本模式再啟動一次
-                console.warn("High-res failed, retrying with basic config...", err);
-                html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess).catch(err2 => {
-                    alert("相機啟動失敗，請確認權限或使用 Chrome/Safari 瀏覽器");
-                    toggleScanner();
-                });
+                alert("相機啟動失敗，請確認權限");
+                toggleScanner();
             });
             
             isScanning = true;
