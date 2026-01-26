@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>盤點小工具 v2.0.5</title>
+    <title>盤點小工具 v2.1.0</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
     <link rel="manifest" href="manifest.json">
@@ -20,21 +20,31 @@
     <style>
         :root { --primary: #0ABAB5; --success: #22c55e; --warning: #f59e0b; --danger: #ef4444; --blue: #3b82f6; --bg: #f3f4f6; --card: #ffffff; --text: #1f2937; }
         
+        /* 基礎設定：強制滿版，防止 iOS Safari 工具列導致按鈕跳動 */
+        html, body {
+            height: 100%;
+            margin: 0; padding: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            touch-action: manipulation; 
+            -webkit-tap-highlight-color: transparent; 
+            user-select: none; 
+        }
+
+        /* 預留頂部空間給固定標題列 (170px) */
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-            background: var(--bg); margin: 0; padding: 0; color: var(--text); 
+            box-sizing: border-box;
             padding-top: calc(170px + env(safe-area-inset-top)); 
             padding-bottom: 80px; 
-            touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; 
         }
         
         input { user-select: text; }
 
-        /* 固定區容器 - 含自動收折動畫 */
+        /* 固定區容器 (標題+數據+搜尋) - 絕對固定不收折 */
         .fixed-group {
             position: fixed; top: 0; left: 0; width: 100%; z-index: 100;
             background: var(--bg);
-            transition: transform 0.3s ease;
         }
 
         /* 1. Header */
@@ -105,16 +115,16 @@
         .scan-section.show { display: block; }
         
         #reader { 
-            width: 100%; height: 270px; 
+            width: 96%; height: 270px; 
             background: black; border-radius: 12px; 
             overflow: hidden; position: relative; 
         }
         #reader video { object-fit: cover; width: 100% !important; height: 100% !important; border-radius: 12px; }
 
-        /* 懸浮按鈕 (SVG 版本 + 鎖定位置) */
+        /* 懸浮按鈕 (SVG 版本 + 強制鎖定座標) */
         .btn-fab-scan {
             position: fixed !important; 
-            bottom: 36px !important;    
+            bottom: 40px !important;    
             left: 30px !important;      
             
             width: 56px; height: 56px;
@@ -176,13 +186,12 @@
         
         .flash-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2000; opacity: 0; transition: opacity 0.2s; }
         
-        /* 👇 Toast 樣式 (字體 16px，位置在下方) */
+        /* Toast 樣式 */
         .toast { 
             position: fixed; 
             top: calc(170px + env(safe-area-inset-top) + 210px);
             left: 50%; 
             transform: translateX(-50%); 
-            
             background-color: rgba(0, 0, 0, 0.85); 
             color: white; 
             padding: 12px 24px; 
@@ -207,7 +216,7 @@
     <div class="header">
         <h1>
             📦 盤點小工具 
-            <span class="version-badge">v2.0.5</span>
+            <span class="version-badge">v2.1.0</span>
         </h1>
         <div class="header-tools">
             <label class="btn-tool btn-file-wrapper">
@@ -304,26 +313,6 @@
     let currentEditIndex = -1;
     let filterMode = 'all';
 
-    // 智能收折邏輯
-    let lastScrollY = 0;
-    document.addEventListener("DOMContentLoaded", () => {
-        const fixedGroup = document.querySelector('.fixed-group');
-        const header = document.querySelector('.header');
-
-        window.addEventListener('scroll', () => {
-            const currentScroll = window.scrollY;
-            if (header && fixedGroup) {
-                const headerHeight = header.offsetHeight;
-                if (currentScroll > lastScrollY && currentScroll > 50) {
-                    fixedGroup.style.transform = `translateY(-${headerHeight}px)`;
-                } else {
-                    fixedGroup.style.transform = 'translateY(0)';
-                }
-                lastScrollY = currentScroll;
-            }
-        });
-    });
-
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const SYSTEM_COLUMNS = { code: ['產品代號'], name: ['產品名稱'], qty:  ['分倉存量'] };
 
@@ -393,21 +382,17 @@
     function renderList(filterText = '') {
         const container = document.getElementById('itemList');
         container.innerHTML = '';
-        
         if (inventoryData.length === 0) {
              container.innerHTML = `<div style="text-align:center; color:#999; padding: 40px 20px;">請點擊右上方「📄匯入」載入 Excel</div>`;
              return;
         }
-        
         let filtered = inventoryData.filter(item => 
             item.code.toLowerCase().includes(filterText.toLowerCase()) || 
             item.name.toLowerCase().includes(filterText.toLowerCase())
         );
-        
         if (filterMode === 'unfinished') {
             filtered = filtered.filter(item => !(item.counted && item.actQty === item.sysQty));
         }
-        
         if (filtered.length === 0) {
             if (filterText.trim() !== '') {
                 container.innerHTML = `<div style="text-align:center; color:#999; padding: 20px;">🔍 無符合項目</div>`;
@@ -420,7 +405,6 @@
             }
             return;
         }
-        
         filtered.forEach((item) => {
             const realIndex = inventoryData.indexOf(item);
             let statusClass = 'todo';
@@ -475,6 +459,10 @@
         const currentAct = item.counted ? item.actQty : 0;
         document.getElementById('modalQty').value = currentAct;
         syncInputToStats(); 
+        
+        // 隱藏懸浮按鈕
+        document.getElementById('fabScan').style.display = 'none';
+        
         document.getElementById('editModal').style.display = 'flex';
     }
 
@@ -522,6 +510,10 @@
 
     function closeModal() {
         document.getElementById('editModal').style.display = 'none';
+        
+        // 恢復懸浮按鈕
+        document.getElementById('fabScan').style.display = 'flex';
+        
         currentEditIndex = -1;
         if(isScanning && html5QrCode) html5QrCode.resume();
     }
@@ -553,9 +545,30 @@
             iconStop.style.display = 'block';
             
             html5QrCode = new Html5Qrcode("reader");
-            const config = { fps: 10, qrbox: { width: 250, height: 120 } };
+            
+            // 👇 通用型相機參數：彈性解析度範圍，相容性與清晰度兼具
+            const constraints = { 
+                facingMode: "environment",
+                focusMode: "continuous", // 試圖開啟連續對焦
+                width: { min: 640, ideal: 1280, max: 1920 }, // 彈性畫質
+                height: { min: 480, ideal: 720, max: 1080 }
+            };
+
+            const config = { 
+                fps: 10, // 省電設定
+                qrbox: { width: 250, height: 120 },
+                experimentalFeatures: {
+                    useBarCodeDetectorIfSupported: true // 硬體加速
+                }
+            };
+            
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess);
+            
+            html5QrCode.start(constraints, config, onScanSuccess).catch(err => {
+                alert("相機啟動失敗，請確認權限");
+                toggleScanner();
+            });
+            
             isScanning = true;
             
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -574,7 +587,6 @@
             playBeep('success');
             triggerFlash('success');
             
-            // 👇 修改這裡：格式 【編號】+1 (已盤XX/應有XX)
             showToast(`【${item.code}】+1 (${item.actQty}/${item.sysQty})`);
             
             updateStats();
